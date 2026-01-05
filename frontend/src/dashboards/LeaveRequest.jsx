@@ -602,7 +602,25 @@ const StudentLeaveRequest = () => {
     }
   };
 
-  const handleGenerateGatePass = () => {
+  // Helper to convert data URL to Blob
+  const dataURLtoBlob = (dataURL) => {
+    try {
+      const arr = dataURL.split(',');
+      const mime = arr[0].match(/:(.*?);/)[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new Blob([u8arr], { type: mime });
+    } catch (e) {
+      console.error('Error converting data URL to blob:', e);
+      return null;
+    }
+  };
+
+  const handleGenerateGatePass = async () => {
     const timestamp = new Date();
     const passId = `GP${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}${String(timestamp.getDate()).padStart(2, '0')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
     
@@ -639,8 +657,47 @@ const StudentLeaveRequest = () => {
         roomNo: selectedStudent.roomNo
       }
     };
-    setGatePass(newGatePass);
-    setStep(4);
+
+    // Prepare FormData for backend submission
+    const formData = new FormData();
+    formData.append('studentId', selectedStudent.rollNo);
+    formData.append('studentName', selectedStudent.name);
+    formData.append('staffId', 'STAFF001'); // Placeholder
+    formData.append('leaveReason', PURPOSE_OPTIONS.find(p => p.id === purpose)?.label || purpose);
+    formData.append('startDate', departureDate);
+    formData.append('endDate', returnDate);
+
+    // Append photos if they are new (base64 data URLs)
+    if (studentPhoto && studentPhoto.startsWith('data:')) {
+      const blob = dataURLtoBlob(studentPhoto);
+      if (blob) formData.append('studentPhoto', blob, 'student.jpg');
+    }
+
+    if (guardianPhoto && guardianPhoto.startsWith('data:')) {
+      const blob = dataURLtoBlob(guardianPhoto);
+      if (blob) formData.append('guardianPhoto', blob, 'guardian.jpg');
+    }
+
+    try {
+      // Send to backend
+      const response = await fetch('http://localhost:5000/api/leave-request/submit', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log('Backend submission successful:', data);
+        setGatePass(newGatePass);
+        setStep(4);
+      } else {
+        alert('Failed to submit leave request: ' + (data.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error submitting to backend:', error);
+      alert('Error connecting to server. Please ensure the backend is running.');
+    }
   };
 
   const formatDate = (dateString) => {
