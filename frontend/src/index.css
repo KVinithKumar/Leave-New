@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@keyframes scroll-x {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.auto-scroll {
+  display: flex;
+  gap: 1rem;
+  animation: scroll-x 30s linear infinite;
+}
+
+.auto-scroll:hover {
+  animation-play-state: paused;
+}

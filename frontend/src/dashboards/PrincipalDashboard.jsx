@@ -1,0 +1,1963 @@
+// import { useState, useEffect, useRef } from 'react';
+// import PrincipalSidebar from "../components/PrincipalSidebar";
+// import Header from "../components/Header";
+// import Footer from "../components/Footer";
+// import { FaEye, FaSearch, FaBell, FaUserGraduate, FaChalkboardTeacher, FaCalendarTimes, FaUserInjured, FaCalendarCheck, FaArrowRight, FaArrowLeft, FaIdCard } from "react-icons/fa";
+
+// const PrincipalDashboard = () => {
+//   // Live time and date state
+//   const [currentTime, setCurrentTime] = useState(new Date());
+//   const [selectedStudent, setSelectedStudent] = useState(null);
+//   const [selectedTeacher, setSelectedTeacher] = useState(null);
+//   const [searchQuery, setSearchQuery] = useState('');
+//   const [newsIndex, setNewsIndex] = useState(0);
+  
+//   // Refs for auto-scroll
+//   const studentScrollRef = useRef(null);
+//   const teacherScrollRef = useRef(null);
+//   const newsScrollRef = useRef(null);
+//   const studentIntervalRef = useRef(null);
+//   const teacherIntervalRef = useRef(null);
+//   const newsIntervalRef = useRef(null);
+
+//   // Flash News data
+//   const flashNews = [
+//     {
+//       id: 1,
+//       title: "Mid-term exams start from 20th Sept",
+//       date: "September 15",
+//       priority: "high"
+//     },
+//     {
+//       id: 2,
+//       title: "Parent-teacher meeting on Friday",
+//       date: "September 22",
+//       priority: "medium"
+//     },
+//     {
+//       id: 3,
+//       title: "School annual day on 25th December",
+//       date: "December 1",
+//       priority: "high"
+//     },
+//     {
+//       id: 4,
+//       title: "Sports day competitions begin next week",
+//       date: "October 10",
+//       priority: "medium"
+//     },
+//     {
+//       id: 5,
+//       title: "Science exhibition entries open",
+//       date: "September 30",
+//       priority: "low"
+//     },
+//     {
+//       id: 6,
+//       title: "Library week starting from 15th Oct",
+//       date: "October 10",
+//       priority: "low"
+//     }
+//   ];
+
+//   // Update time every second
+//   useEffect(() => {
+//     const timer = setInterval(() => {
+//       setCurrentTime(new Date());
+//     }, 1000);
+
+//     return () => clearInterval(timer);
+//   }, []);
+
+//   // Auto-scroll functionality for students and teachers
+//   useEffect(() => {
+//     // Start auto-scroll for students
+//     studentIntervalRef.current = setInterval(() => {
+//       if (studentScrollRef.current && !selectedStudent) {
+//         studentScrollRef.current.scrollTop += 1;
+//         if (studentScrollRef.current.scrollTop >= studentScrollRef.current.scrollHeight - studentScrollRef.current.clientHeight) {
+//           studentScrollRef.current.scrollTop = 0;
+//         }
+//       }
+//     }, 50);
+
+//     // Start auto-scroll for teachers
+//     teacherIntervalRef.current = setInterval(() => {
+//       if (teacherScrollRef.current && !selectedTeacher) {
+//         teacherScrollRef.current.scrollTop += 1;
+//         if (teacherScrollRef.current.scrollTop >= teacherScrollRef.current.scrollHeight - teacherScrollRef.current.clientHeight) {
+//           teacherScrollRef.current.scrollTop = 0;
+//         }
+//       }
+//     }, 50);
+
+//     // Start auto-scroll for news (horizontal)
+//     newsIntervalRef.current = setInterval(() => {
+//       setNewsIndex(prev => {
+//         if (prev >= flashNews.length - 1) return 0;
+//         return prev + 1;
+//       });
+//     }, 3000); // Change news every 3 seconds
+
+//     return () => {
+//       clearInterval(studentIntervalRef.current);
+//       clearInterval(teacherIntervalRef.current);
+//       clearInterval(newsIntervalRef.current);
+//     };
+//   }, [selectedStudent, selectedTeacher]);
+
+//   // Stop scrolling when hovering
+//   const handleStudentMouseEnter = () => {
+//     clearInterval(studentIntervalRef.current);
+//   };
+
+//   const handleStudentMouseLeave = () => {
+//     if (!selectedStudent) {
+//       studentIntervalRef.current = setInterval(() => {
+//         if (studentScrollRef.current) {
+//           studentScrollRef.current.scrollTop += 1;
+//           if (studentScrollRef.current.scrollTop >= studentScrollRef.current.scrollHeight - studentScrollRef.current.clientHeight) {
+//             studentScrollRef.current.scrollTop = 0;
+//           }
+//         }
+//       }, 50);
+//     }
+//   };
+
+//   const handleTeacherMouseEnter = () => {
+//     clearInterval(teacherIntervalRef.current);
+//   };
+
+//   const handleTeacherMouseLeave = () => {
+//     if (!selectedTeacher) {
+//       teacherIntervalRef.current = setInterval(() => {
+//         if (teacherScrollRef.current) {
+//           teacherScrollRef.current.scrollTop += 1;
+//           if (teacherScrollRef.current.scrollTop >= teacherScrollRef.current.scrollHeight - teacherScrollRef.current.clientHeight) {
+//             teacherScrollRef.current.scrollTop = 0;
+//           }
+//         }
+//       }, 50);
+//     }
+//   };
+
+//   // Handle manual news navigation
+//   const handleNextNews = () => {
+//     clearInterval(newsIntervalRef.current);
+//     setNewsIndex(prev => {
+//       if (prev >= flashNews.length - 1) return 0;
+//       return prev + 1;
+//     });
+//     // Restart auto-scroll
+//     newsIntervalRef.current = setInterval(() => {
+//       setNewsIndex(prev => {
+//         if (prev >= flashNews.length - 1) return 0;
+//         return prev + 1;
+//       });
+//     }, 3000);
+//   };
+
+//   const handlePrevNews = () => {
+//     clearInterval(newsIntervalRef.current);
+//     setNewsIndex(prev => {
+//       if (prev <= 0) return flashNews.length - 1;
+//       return prev - 1;
+//     });
+//     // Restart auto-scroll
+//     newsIntervalRef.current = setInterval(() => {
+//       setNewsIndex(prev => {
+//         if (prev >= flashNews.length - 1) return 0;
+//         return prev + 1;
+//       });
+//     }, 3000);
+//   };
+
+//   // Format time to 12-hour format with AM/PM
+//   const formatTime = (date) => {
+//     return date.toLocaleTimeString('en-US', {
+//       hour: '2-digit',
+//       minute: '2-digit',
+//       second: '2-digit',
+//       hour12: true
+//     });
+//   };
+
+//   // Format date with weekday
+//   const formatDate = (date) => {
+//     return date.toLocaleDateString('en-US', {
+//       weekday: 'long',
+//       year: 'numeric',
+//       month: 'long',
+//       day: 'numeric'
+//     });
+//   };
+
+//   // Format short date
+//   const formatShortDate = (date) => {
+//     return date.toLocaleDateString('en-US', {
+//       month: 'short',
+//       day: 'numeric'
+//     });
+//   };
+
+//   // Get day of week
+//   const getDayOfWeek = (date) => {
+//     return date.toLocaleDateString('en-US', { weekday: 'long' });
+//   };
+
+//   // Get greeting based on time of day
+//   const getGreeting = () => {
+//     const hour = currentTime.getHours();
+//     if (hour < 12) return "Good Morning";
+//     if (hour < 18) return "Good Afternoon";
+//     return "Good Evening";
+//   };
+
+//   // Student data - Updated to match StaffDashboard format
+//   const studentStats = {
+//     total: 1250,
+//     present: 1150,
+//     sick: 35,
+//     leave: 25,
+//     absent: 40,
+//     attendance: 92
+//   };
+
+//   // Teacher data - Updated to match StaffDashboard format
+//   const teacherStats = {
+//     total: 78,
+//     present: 70,
+//     absent: 5,
+//     leave: 3,
+//     attendance: 89.7
+//   };
+
+//   // Absent/Sick/Leave Students
+//   const absentStudents = [
+//     {
+//       id: "STU001",
+//       aadharId: "1234 5678 9012",
+//       name: "Sasha Reddy",
+//       class: "12",
+//       section: "A",
+//       rollNo: "042",
+//       father: "Ramesh Reddy",
+//       mother: "Sita Reddy",
+//       phone: "987645216",
+//       emergency: "9988776655",
+//       address: "Hyderabad, Telangana",
+//       status: "absent",
+//       profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sasha",
+//     },
+//     {
+//       id: "STU002",
+//       aadharId: "2345 6789 0123",
+//       name: "Rajesh Kumar",
+//       class: "11",
+//       section: "C",
+//       rollNo: "015",
+//       father: "Mahesh Kumar",
+//       mother: "Lakshmi Kumar",
+//       phone: "987645214",
+//       emergency: "9876501234",
+//       address: "Warangal, Telangana",
+//       status: "sick",
+//       profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rajesh",
+//     },
+//     {
+//       id: "STU003",
+//       aadharId: "3456 7890 1234",
+//       name: "Priya Sharma",
+//       class: "10",
+//       section: "B",
+//       rollNo: "028",
+//       father: "Amit Sharma",
+//       mother: "Neha Sharma",
+//       phone: "9876543212",
+//       emergency: "9876543213",
+//       address: "Mumbai, Maharashtra",
+//       status: "leave",
+//       profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Priya",
+//     },
+//     {
+//       id: "STU004",
+//       aadharId: "4567 8901 2345",
+//       name: "Arun Patel",
+//       class: "9",
+//       section: "A",
+//       rollNo: "033",
+//       father: "Ramesh Patel",
+//       mother: "Sunita Patel",
+//       phone: "9876543214",
+//       emergency: "9876543215",
+//       address: "Ahmedabad, Gujarat",
+//       status: "absent",
+//       profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Arun",
+//     },
+//     {
+//       id: "STU005",
+//       aadharId: "5678 9012 3456",
+//       name: "Sneha Verma",
+//       class: "12",
+//       section: "C",
+//       rollNo: "019",
+//       father: "Vikram Verma",
+//       mother: "Anita Verma",
+//       phone: "9876543216",
+//       emergency: "9876543217",
+//       address: "Delhi, NCR",
+//       status: "sick",
+//       profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sneha",
+//     },
+//     {
+//       id: "STU006",
+//       aadharId: "6789 0123 4567",
+//       name: "Vikram Singh",
+//       class: "11",
+//       section: "B",
+//       rollNo: "056",
+//       father: "Raj Singh",
+//       mother: "Kavita Singh",
+//       phone: "9876543218",
+//       emergency: "9876543219",
+//       address: "Jaipur, Rajasthan",
+//       status: "leave",
+//       profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Vikram",
+//     },
+//   ];
+
+//   // Teachers on Leave
+//   const teachersOnLeave = [
+//     {
+//       id: "TCH001",
+//       aadharId: "7890 1234 5678",
+//       teacherId: "MATH007",
+//       name: "Ravi Shankar",
+//       subject: "Mathematics",
+//       classes: "10A, 11B, 12C",
+//       reason: "Medical",
+//       phone: "9000012345",
+//       emergency: "9000099999",
+//       profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ravi",
+//     },
+//     {
+//       id: "TCH002",
+//       aadharId: "8901 2345 6789",
+//       teacherId: "PHY002",
+//       name: "Anita Rao",
+//       subject: "Physics",
+//       classes: "12A, 11C",
+//       reason: "Personal",
+//       phone: "9000098765",
+//       emergency: "9000088888",
+//       profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Anita",
+//     },
+//     {
+//       id: "TCH003",
+//       aadharId: "9012 3456 7890",
+//       teacherId: "ENG003",
+//       name: "Priya Menon",
+//       subject: "English",
+//       classes: "9A, 10B, 11A",
+//       reason: "Conference",
+//       phone: "9000076543",
+//       emergency: "9000066666",
+//       profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=PriyaM",
+//     },
+//     {
+//       id: "TCH004",
+//       aadharId: "0123 4567 8901",
+//       teacherId: "CHEM004",
+//       name: "Karthik Iyer",
+//       subject: "Chemistry",
+//       classes: "11B, 12A",
+//       reason: "Medical",
+//       phone: "9000054321",
+//       emergency: "9000044444",
+//       profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Karthik",
+//     },
+//     {
+//       id: "TCH005",
+//       aadharId: "1122 3344 5566",
+//       teacherId: "BIO005",
+//       name: "Sunita Gupta",
+//       subject: "Biology",
+//       classes: "10C, 11A, 12B",
+//       reason: "Personal",
+//       phone: "9000033333",
+//       emergency: "9000022222",
+//       profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sunita",
+//     },
+//   ];
+
+//   // Get status color - Updated to match StaffDashboard
+//   const getStatusColor = (status) => {
+//     switch (status) {
+//       case 'absent': return 'bg-red-100 text-red-800';
+//       case 'sick': return 'bg-yellow-100 text-yellow-800';
+//       case 'leave': return 'bg-blue-100 text-blue-800';
+//       default: return 'bg-gray-100 text-gray-800';
+//     }
+//   };
+
+//   // Get status icon
+//   const getStatusIcon = (status) => {
+//     switch (status) {
+//       case 'absent': return <FaUserInjured className="text-red-600" />;
+//       case 'sick': return <FaUserInjured className="text-yellow-600" />;
+//       case 'leave': return <FaCalendarTimes className="text-blue-600" />;
+//       default: return null;
+//     }
+//   };
+
+//   // Handle search
+//   const handleSearch = (e) => {
+//     e.preventDefault();
+//     if (searchQuery.trim()) {
+//       // Search in students
+//       const foundStudent = absentStudents.find(student => 
+//         student.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+//         student.rollNo.includes(searchQuery) ||
+//         student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+//         student.aadharId.includes(searchQuery)
+//       );
+      
+//       if (foundStudent) {
+//         setSelectedStudent(foundStudent);
+//         return;
+//       }
+
+//       // Search in teachers
+//       const foundTeacher = teachersOnLeave.find(teacher =>
+//         teacher.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+//         teacher.teacherId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+//         teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+//         teacher.aadharId.includes(searchQuery)
+//       );
+
+//       if (foundTeacher) {
+//         setSelectedTeacher(foundTeacher);
+//       }
+//     }
+//   };
+
+//   return (
+//     <div className="flex min-h-screen">
+
+//       {/* SIDEBAR */}
+//       <div className="w-64 bg-blue-900 text-white">
+//         <PrincipalSidebar />
+//       </div>
+
+//       {/* MAIN AREA */}
+//       <div className="flex flex-col flex-1">
+
+//         {/* HEADER */}
+//         <Header />
+
+//         {/* CONTENT */}
+//         <main className="flex-1 p-6 bg-gray-100 overflow-y-auto">
+
+//           {/* PAGE HEADER WITH LIVE TIME AND SEARCH - Updated to match StaffDashboard */}
+//           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+//             <div>
+//               <h1 className="text-2xl font-bold text-gray-800">Principal Dashboard</h1>
+//               <p className="text-gray-600 mt-1">{getGreeting()}, Principal</p>
+//             </div>
+            
+//             {/* SEARCH AND TIME CONTAINER - Updated layout */}
+//             <div className="flex flex-col md:flex-row items-center gap-4 mt-4 md:mt-0">
+//               {/* SEARCH BAR - Updated to match StaffDashboard */}
+//               <div className="w-full md:w-auto">
+//                 <form onSubmit={handleSearch} className="relative">
+//                   <div className="flex items-center">
+//                     <input
+//                       type="text"
+//                       placeholder="Search students, teachers, or ID..."
+//                       className="px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full md:w-64"
+//                       value={searchQuery}
+//                       onChange={(e) => setSearchQuery(e.target.value)}
+//                     />
+//                     <button
+//                       type="submit"
+//                       className="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+//                       title="Search"
+//                     >
+//                       <FaSearch className="w-5 h-5" />
+//                     </button>
+//                   </div>
+//                 </form>
+//               </div>
+              
+//               {/* LIVE TIME WIDGET - Updated to match StaffDashboard */}
+//               <div className="bg-white p-4 rounded-lg shadow border border-gray-200 hover:shadow-md transition-shadow duration-300">
+//                 <div className="flex items-center space-x-4">
+//                   <div className="text-center">
+//                     <div className="text-sm text-gray-500">Today</div>
+//                     <div className="text-lg font-bold text-blue-600">{formatShortDate(currentTime)}</div>
+//                     <div className="text-xs text-gray-500">{getDayOfWeek(currentTime)}</div>
+//                   </div>
+                  
+//                   <div className="h-12 w-px bg-gray-200"></div>
+                  
+//                   <div className="text-center">
+//                     <div className="text-sm text-gray-500">Live Time</div>
+//                     <div className="text-xl font-bold text-gray-800 tracking-wider">
+//                       {formatTime(currentTime)}
+//                     </div>
+//                     <div className="text-xs text-green-600 font-medium mt-1 animate-pulse">
+//                       ● Live Updating
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+
+//           {/* FLASH NEWS - Updated to match StaffDashboard */}
+//           <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded mb-6 hover:bg-yellow-200 transition-colors duration-200 cursor-pointer">
+//             <div className="flex justify-between items-start">
+//               <div>
+//                 <h2 className="font-semibold text-yellow-800 flex items-center">
+//                   <span className="mr-2">📢</span> Flash News - {formatShortDate(currentTime)}
+//                 </h2>
+//                 <marquee className="text-sm text-yellow-700 mt-1">
+//                   Mid-term exams start from 20th Sept | Parent-teacher meeting on Friday | School annual day on 25th December | 
+//                   Sports day competitions begin next week | Science exhibition entries open | Library week starting from 15th Oct |
+//                   Live time: {formatTime(currentTime)} | Today is {getDayOfWeek(currentTime)}
+//                 </marquee>
+//               </div>
+//               <div className="text-xs text-yellow-700 bg-yellow-200 px-2 py-1 rounded">
+//                 Updated Just Now
+//               </div>
+//             </div>
+//           </div>
+
+//           {/* STUDENTS OVERVIEW CARDS - Updated to match StaffDashboard format */}
+//           <div className="mb-8">
+//             <div className="flex items-center gap-3 mb-4">
+//               <div className="p-2 bg-blue-600 rounded-lg">
+//                 <FaUserGraduate className="text-xl text-white" />
+//               </div>
+//               <h2 className="text-xl font-bold text-gray-800">Students Overview</h2>
+//             </div>
+            
+//             {/* UPDATED CARDS LAYOUT to match StaffDashboard */}
+//             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+//               {/* Total Students */}
+//               <div className="bg-white p-5 rounded shadow border-l-4 border-blue-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+//                 <div className="flex justify-between items-start">
+//                   <p className="text-sm text-gray-500">Total Students</p>
+//                   <span className="text-xs text-gray-400">As of {formatTime(currentTime)}</span>
+//                 </div>
+//                 <h3 className="text-2xl font-bold mt-1">{studentStats.total}</h3>
+//                 <div className="mt-2 text-xs text-gray-400">
+//                   Across all classes
+//                 </div>
+//               </div>
+
+//               {/* Present Today */}
+//               <div className="bg-white p-5 rounded shadow border-l-4 border-green-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+//                 <div className="flex justify-between items-start">
+//                   <p className="text-sm text-gray-500">Present Today</p>
+//                   <span className="text-xs text-gray-400">Updated Now</span>
+//                 </div>
+//                 <h3 className="text-2xl font-bold mt-1 text-green-600">{studentStats.present}</h3>
+//                 <div className="mt-2 text-xs text-gray-400">
+//                   Students attended today
+//                 </div>
+//               </div>
+
+//               {/* Absent Today */}
+//               <div className="bg-white p-5 rounded shadow border-l-4 border-red-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+//                 <div className="flex justify-between items-start">
+//                   <p className="text-sm text-gray-500">Absent Today</p>
+//                   <span className="text-xs text-gray-400">Live Count</span>
+//                 </div>
+//                 <h3 className="text-2xl font-bold mt-1 text-red-600">{studentStats.absent}</h3>
+//                 <div className="mt-2 text-xs text-gray-400">
+//                   Students absent today
+//                 </div>
+//               </div>
+
+//               {/* Sick Students */}
+//               <div className="bg-white p-5 rounded shadow border-l-4 border-yellow-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+//                 <div className="flex justify-between items-start">
+//                   <p className="text-sm text-gray-500">Classes Today</p>
+//                   <span className="text-xs text-gray-400">5 Sessions</span>
+//                 </div>
+//                 <h3 className="text-2xl font-bold mt-1 text-yellow-600">{studentStats.sick}</h3>
+//                 <div className="mt-2 text-xs text-gray-400">
+//                   Scheduled for today
+//                 </div>
+//               </div>
+
+//               {/* Attendance Percentage */}
+//               <div className="bg-white p-5 rounded shadow border-l-4 border-amber-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+//                 <div className="flex justify-between items-start">
+//                   <p className="text-sm text-gray-500">Attendance %</p>
+//                   <span className="text-xs text-gray-400">Live</span>
+//                 </div>
+//                 <h3 className="text-2xl font-bold mt-1">{studentStats.attendance}%</h3>
+//                 <div className="mt-2 text-xs text-gray-400">
+//                   Today's attendance rate
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* ATTENDANCE SUMMARY WITH TIME - Updated to match StaffDashboard */}
+//             <div className="mb-8 bg-white rounded shadow p-5 hover:shadow-lg transition-shadow duration-300">
+//               <div className="flex justify-between items-center mb-4">
+//                 <h2 className="font-semibold">📊 Today's Student Attendance Summary</h2>
+//                 <div className="text-sm text-gray-500">
+//                   Last updated: {formatTime(currentTime)}
+//                 </div>
+//               </div>
+//               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+//                 <div className="p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200 cursor-pointer">
+//                   <div className="flex items-center justify-between">
+//                     <div>
+//                       <p className="text-sm text-gray-600">Present</p>
+//                       <p className="text-2xl font-bold text-green-700">{studentStats.present}</p>
+//                     </div>
+//                     <div className="text-green-600 text-2xl animate-pulse">
+//                       ✓
+//                     </div>
+//                   </div>
+//                 </div>
+                
+//                 <div className="p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors duration-200 cursor-pointer">
+//                   <div className="flex items-center justify-between">
+//                     <div>
+//                       <p className="text-sm text-gray-600">Absent</p>
+//                       <p className="text-2xl font-bold text-red-700">{studentStats.absent}</p>
+//                     </div>
+//                     <div className="text-red-600 text-2xl">
+//                       ✗
+//                     </div>
+//                   </div>
+//                 </div>
+                
+//                 <div className="p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200 cursor-pointer">
+//                   <div className="flex items-center justify-between">
+//                     <div>
+//                       <p className="text-sm text-gray-600">Live Time</p>
+//                       <p className="text-xl font-bold text-blue-700">{formatTime(currentTime)}</p>
+//                     </div>
+//                     <div className="text-blue-600 text-2xl">
+//                       ⏰
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+
+//           {/* TEACHERS OVERVIEW CARDS - Updated to match StaffDashboard format */}
+//           <div className="mb-8">
+//             <div className="flex items-center gap-3 mb-4">
+//               <div className="p-2 bg-purple-600 rounded-lg">
+//                 <FaChalkboardTeacher className="text-xl text-white" />
+//               </div>
+//               <h2 className="text-xl font-bold text-gray-800">Teachers Overview</h2>
+//             </div>
+            
+//             {/* UPDATED CARDS LAYOUT to match StaffDashboard */}
+//             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+//               {/* Total Teachers */}
+//               <div className="bg-white p-5 rounded shadow border-l-4 border-purple-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+//                 <div className="flex justify-between items-start">
+//                   <p className="text-sm text-gray-500">Total Teachers</p>
+//                   <span className="text-xs text-gray-400">As of {formatTime(currentTime)}</span>
+//                 </div>
+//                 <h3 className="text-2xl font-bold mt-1">{teacherStats.total}</h3>
+//                 <div className="mt-2 text-xs text-gray-400">
+//                   All departments
+//                 </div>
+//               </div>
+
+//               {/* Present Today */}
+//               <div className="bg-white p-5 rounded shadow border-l-4 border-green-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+//                 <div className="flex justify-between items-start">
+//                   <p className="text-sm text-gray-500">Present Today</p>
+//                   <span className="text-xs text-gray-400">Updated Now</span>
+//                 </div>
+//                 <h3 className="text-2xl font-bold mt-1 text-green-600">{teacherStats.present}</h3>
+//                 <div className="mt-2 text-xs text-gray-400">
+//                   Teaching today
+//                 </div>
+//               </div>
+
+//               {/* Absent Teachers */}
+//               <div className="bg-white p-5 rounded shadow border-l-4 border-red-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+//                 <div className="flex justify-between items-start">
+//                   <p className="text-sm text-gray-500">Absent Today</p>
+//                   <span className="text-xs text-gray-400">Live Count</span>
+//                 </div>
+//                 <h3 className="text-2xl font-bold mt-1 text-red-600">{teacherStats.absent}</h3>
+//                 <div className="mt-2 text-xs text-gray-400">
+//                   Teachers absent today
+//                 </div>
+//               </div>
+
+//               {/* On Leave */}
+//               <div className="bg-white p-5 rounded shadow border-l-4 border-blue-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+//                 <div className="flex justify-between items-start">
+//                   <p className="text-sm text-gray-500">On Leave</p>
+//                   <span className="text-xs text-gray-400">Approved leave</span>
+//                 </div>
+//                 <h3 className="text-2xl font-bold mt-1">{teacherStats.leave}</h3>
+//                 <div className="mt-2 text-xs text-gray-400">
+//                   Leave approved
+//                 </div>
+//               </div>
+
+//               {/* Attendance Percentage */}
+//               <div className="bg-white p-5 rounded shadow border-l-4 border-amber-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+//                 <div className="flex justify-between items-start">
+//                   <p className="text-sm text-gray-500">Attendance %</p>
+//                   <span className="text-xs text-gray-400">Live</span>
+//                 </div>
+//                 <h3 className="text-2xl font-bold mt-1">{teacherStats.attendance}%</h3>
+//                 <div className="mt-2 text-xs text-gray-400">
+//                   Today's attendance rate
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* TEACHER ATTENDANCE SUMMARY - Updated to match StaffDashboard */}
+//             <div className="mb-8 bg-white rounded shadow p-5 hover:shadow-lg transition-shadow duration-300">
+//               <div className="flex justify-between items-center mb-4">
+//                 <h2 className="font-semibold">📊 Today's Teacher Attendance Summary</h2>
+//                 <div className="text-sm text-gray-500">
+//                   Last updated: {formatTime(currentTime)}
+//                 </div>
+//               </div>
+//               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+//                 <div className="p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200 cursor-pointer">
+//                   <div className="flex items-center justify-between">
+//                     <div>
+//                       <p className="text-sm text-gray-600">Present</p>
+//                       <p className="text-2xl font-bold text-green-700">{teacherStats.present}</p>
+//                     </div>
+//                     <div className="text-green-600 text-2xl animate-pulse">
+//                       ✓
+//                     </div>
+//                   </div>
+//                 </div>
+                
+//                 <div className="p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors duration-200 cursor-pointer">
+//                   <div className="flex items-center justify-between">
+//                     <div>
+//                       <p className="text-sm text-gray-600">Absent</p>
+//                       <p className="text-2xl font-bold text-red-700">{teacherStats.absent}</p>
+//                     </div>
+//                     <div className="text-red-600 text-2xl">
+//                       ✗
+//                     </div>
+//                   </div>
+//                 </div>
+                
+//                 <div className="p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200 cursor-pointer">
+//                   <div className="flex items-center justify-between">
+//                     <div>
+//                       <p className="text-sm text-gray-600">Attendance %</p>
+//                       <p className="text-2xl font-bold text-purple-700">{teacherStats.attendance}%</p>
+//                     </div>
+//                     <div className="text-purple-600 text-2xl">
+//                       📊
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+
+//           {/* TWO COLUMN SECTION - Updated */}
+//           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+//             {/* ABSENT/SICK/LEAVE STUDENTS */}
+//             <div className="bg-white rounded shadow p-5 hover:shadow-lg transition-shadow duration-300">
+//               <div className="flex justify-between items-center mb-4">
+//                 <h2 className="font-semibold text-red-600 flex items-center gap-2">
+//                   <FaUserInjured />
+//                   Absent / Sick / Leave Students
+//                 </h2>
+//                 <div className="text-sm text-gray-500">
+//                   Total: {absentStudents.length}
+//                 </div>
+//               </div>
+              
+//               <div 
+//                 ref={studentScrollRef}
+//                 onMouseEnter={handleStudentMouseEnter}
+//                 onMouseLeave={handleStudentMouseLeave}
+//                 className="h-[350px] overflow-y-auto pr-2 space-y-3"
+//               >
+//                 {absentStudents.map((student, index) => (
+//                   <div 
+//                     key={index}
+//                     onClick={() => setSelectedStudent(student)}
+//                     className="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
+//                   >
+//                     <div className="flex items-center space-x-3">
+//                       <div className="relative">
+//                         <img
+//                           src={student.profilePhoto}
+//                           className="w-12 h-12 rounded-full border-2 border-gray-200"
+//                           alt={student.name}
+//                         />
+//                       </div>
+//                       <div>
+//                         <p className="font-medium group-hover:text-gray-700 transition-colors">
+//                           {student.name}
+//                         </p>
+//                         <p className="text-sm text-gray-600">
+//                           Class {student.class}-{student.section}
+//                         </p>
+//                         <p className="text-xs text-gray-500">ID: {student.id}</p>
+//                       </div>
+//                     </div>
+//                     <div className="flex items-center gap-3">
+//                       <span className={`px-3 py-1 text-xs rounded-full flex items-center gap-1 ${getStatusColor(student.status)}`}>
+//                         {getStatusIcon(student.status)}
+//                         {student.status.toUpperCase()}
+//                       </span>
+//                       <button className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1">
+//                         <FaEye />
+//                         View
+//                       </button>
+//                     </div>
+//                   </div>
+//                 ))}
+//               </div>
+              
+//               {/* AUTO-SCROLL INDICATOR */}
+//               <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+//                 <div className="flex items-center justify-between">
+//                   <div className="flex items-center space-x-2">
+//                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+//                     <span className="text-sm font-medium text-blue-800">Auto-scroll enabled</span>
+//                   </div>
+//                   <div className="text-sm text-gray-600">
+//                     Hover to pause
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* TEACHERS ON LEAVE */}
+//             <div className="bg-white rounded shadow p-5 hover:shadow-lg transition-shadow duration-300">
+//               <div className="flex justify-between items-center mb-4">
+//                 <h2 className="font-semibold text-orange-600 flex items-center gap-2">
+//                   <FaCalendarTimes />
+//                   Teachers on Leave
+//                 </h2>
+//                 <div className="text-sm text-gray-500">
+//                   Total: {teachersOnLeave.length}
+//                 </div>
+//               </div>
+              
+//               <div 
+//                 ref={teacherScrollRef}
+//                 onMouseEnter={handleTeacherMouseEnter}
+//                 onMouseLeave={handleTeacherMouseLeave}
+//                 className="h-[350px] overflow-y-auto pr-2 space-y-3"
+//               >
+//                 {teachersOnLeave.map((teacher, index) => (
+//                   <div 
+//                     key={index}
+//                     onClick={() => setSelectedTeacher(teacher)}
+//                     className="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
+//                   >
+//                     <div className="flex items-center space-x-3">
+//                       <div className="relative">
+//                         <img
+//                           src={teacher.profilePhoto}
+//                           className="w-12 h-12 rounded-full border-2 border-gray-200"
+//                           alt={teacher.name}
+//                         />
+//                       </div>
+//                       <div>
+//                         <p className="font-medium group-hover:text-gray-700 transition-colors">
+//                           {teacher.name}
+//                         </p>
+//                         <p className="text-sm text-gray-600">{teacher.subject}</p>
+//                         <p className="text-xs text-gray-500">ID: {teacher.teacherId}</p>
+//                       </div>
+//                     </div>
+//                     <div className="flex items-center gap-3">
+//                       <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full flex items-center gap-1">
+//                         <FaCalendarTimes className="text-yellow-600" />
+//                         ON LEAVE
+//                       </span>
+//                       <button className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1">
+//                         <FaEye />
+//                         View
+//                       </button>
+//                     </div>
+//                   </div>
+//                 ))}
+//               </div>
+              
+//               {/* AUTO-SCROLL INDICATOR */}
+//               <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+//                 <div className="flex items-center justify-between">
+//                   <div className="flex items-center space-x-2">
+//                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+//                     <span className="text-sm font-medium text-blue-800">Auto-scroll enabled</span>
+//                   </div>
+//                   <div className="text-sm text-gray-600">
+//                     Hover to pause
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+
+//           </div>
+
+//           {/* DATE TIME FOOTER - Updated to match StaffDashboard */}
+//           <div className="mt-8 p-4 bg-gray-800 text-white rounded-lg">
+//             <div className="flex flex-col md:flex-row md:items-center justify-between">
+//               <div>
+//                 <div className="text-sm text-gray-300">System Status</div>
+//                 <div className="text-lg font-bold">All Systems Operational</div>
+//                 <div className="text-xs text-gray-400 mt-1">
+//                   Last system check: {formatTime(currentTime)}
+//                 </div>
+//               </div>
+//               <div className="mt-4 md:mt-0 text-center md:text-right">
+//                 <div className="text-3xl font-bold tracking-wider">
+//                   {formatTime(currentTime)}
+//                 </div>
+//                 <div className="text-sm text-gray-300">
+//                   {formatDate(currentTime)}
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+
+//         </main>
+//       </div>
+
+//       {/* STUDENT DETAIL MODAL */}
+//       {selectedStudent && (
+//         <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+//           {/* Blurred background */}
+//           <div className="absolute inset-0 backdrop-blur-md bg-black/30"></div>
+          
+//           <div className="relative bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+//             <div className="sticky top-0 bg-blue-600 px-6 py-4 text-white rounded-t-lg flex justify-between items-center">
+//               <h2 className="text-xl font-bold flex items-center gap-2">
+//                 <FaUserGraduate />
+//                 Student Details
+//               </h2>
+//               <button onClick={() => setSelectedStudent(null)} className="text-white text-2xl hover:text-gray-200">×</button>
+//             </div>
+            
+//             <div className="p-6">
+//               <div className="flex flex-col md:flex-row gap-6">
+//                 <div className="md:w-1/3 flex flex-col items-center">
+//                   <div className="relative">
+//                     <img
+//                       src={selectedStudent.profilePhoto}
+//                       className="w-48 h-48 rounded-lg border-4 border-white shadow-lg"
+//                       alt={selectedStudent.name}
+//                     />
+//                     <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
+//                       ID: {selectedStudent.id}
+//                     </div>
+//                   </div>
+//                   <div className="mt-8 text-center">
+//                     <h3 className="text-2xl font-bold text-gray-800">{selectedStudent.name}</h3>
+//                     <p className="text-gray-600">Class {selectedStudent.class}-{selectedStudent.section}</p>
+//                     <span className={`mt-3 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 justify-center ${getStatusColor(selectedStudent.status)}`}>
+//                       {getStatusIcon(selectedStudent.status)}
+//                       {selectedStudent.status.toUpperCase()}
+//                     </span>
+//                   </div>
+//                 </div>
+                
+//                 <div className="md:w-2/3">
+//                   <div className="bg-blue-50 p-4 rounded-lg mb-4">
+//                     <h4 className="font-semibold text-blue-700 mb-2">Personal Information</h4>
+//                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//                       <div>
+//                         <label className="block text-sm font-medium text-gray-500">Roll Number</label>
+//                         <p className="font-semibold text-gray-800">{selectedStudent.rollNo}</p>
+//                       </div>
+//                       <div>
+//                         <label className="block text-sm font-medium text-gray-500">Student ID</label>
+//                         <p className="font-semibold text-gray-800">{selectedStudent.id}</p>
+//                       </div>
+//                       <div>
+//                         <label className="block text-sm font-medium text-gray-500">Father's Name</label>
+//                         <p className="font-semibold text-gray-800">{selectedStudent.father}</p>
+//                       </div>
+//                       <div>
+//                         <label className="block text-sm font-medium text-gray-500">Mother's Name</label>
+//                         <p className="font-semibold text-gray-800">{selectedStudent.mother}</p>
+//                       </div>
+//                       <div className="md:col-span-2">
+//                         <label className="block text-sm font-medium text-gray-500 flex items-center gap-2">
+//                           <FaIdCard className="text-blue-500" />
+//                           Aadhar ID
+//                         </label>
+//                         <p className="font-semibold text-gray-800">{selectedStudent.aadharId}</p>
+//                       </div>
+//                     </div>
+//                   </div>
+                  
+//                   <div className="bg-blue-50 p-4 rounded-lg">
+//                     <h4 className="font-semibold text-blue-700 mb-2">Contact Information</h4>
+//                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//                       <div>
+//                         <label className="block text-sm font-medium text-gray-500">Phone Number</label>
+//                         <p className="font-semibold text-gray-800">{selectedStudent.phone}</p>
+//                       </div>
+//                       <div>
+//                         <label className="block text-sm font-medium text-gray-500">Emergency Contact</label>
+//                         <p className="font-semibold text-gray-800">{selectedStudent.emergency}</p>
+//                       </div>
+//                       <div className="md:col-span-2">
+//                         <label className="block text-sm font-medium text-gray-500">Address</label>
+//                         <p className="font-semibold text-gray-800">{selectedStudent.address}</p>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       {/* TEACHER DETAIL MODAL */}
+//       {selectedTeacher && (
+//         <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+//           {/* Blurred background */}
+//           <div className="absolute inset-0 backdrop-blur-md bg-black/30"></div>
+          
+//           <div className="relative bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+//             <div className="sticky top-0 bg-purple-600 px-6 py-4 text-white rounded-t-lg flex justify-between items-center">
+//               <h2 className="text-xl font-bold flex items-center gap-2">
+//                 <FaChalkboardTeacher />
+//                 Teacher Details
+//               </h2>
+//               <button onClick={() => setSelectedTeacher(null)} className="text-white text-2xl hover:text-gray-200">×</button>
+//             </div>
+            
+//             <div className="p-6">
+//               <div className="flex flex-col md:flex-row gap-6">
+//                 <div className="md:w-1/3 flex flex-col items-center">
+//                   <div className="relative">
+//                     <img
+//                       src={selectedTeacher.profilePhoto}
+//                       className="w-48 h-48 rounded-lg border-4 border-white shadow-lg"
+//                       alt={selectedTeacher.name}
+//                     />
+//                     <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white px-4 py-1 rounded-full text-sm font-medium">
+//                       ID: {selectedTeacher.teacherId}
+//                     </div>
+//                   </div>
+//                   <div className="mt-8 text-center">
+//                     <h3 className="text-2xl font-bold text-gray-800">{selectedTeacher.name}</h3>
+//                     <p className="text-gray-600">{selectedTeacher.subject} Teacher</p>
+//                     <span className="mt-3 px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium flex items-center gap-2 justify-center">
+//                       <FaCalendarTimes />
+//                       ON LEAVE
+//                     </span>
+//                   </div>
+//                 </div>
+                
+//                 <div className="md:w-2/3">
+//                   <div className="bg-purple-50 p-4 rounded-lg mb-4">
+//                     <h4 className="font-semibold text-purple-700 mb-2">Professional Information</h4>
+//                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//                       <div>
+//                         <label className="block text-sm font-medium text-gray-500">Teacher ID</label>
+//                         <p className="font-semibold text-gray-800">{selectedTeacher.teacherId}</p>
+//                       </div>
+//                       <div>
+//                         <label className="block text-sm font-medium text-gray-500">Subject</label>
+//                         <p className="font-semibold text-gray-800">{selectedTeacher.subject}</p>
+//                       </div>
+//                       <div className="md:col-span-2">
+//                         <label className="block text-sm font-medium text-gray-500">Classes Assigned</label>
+//                         <p className="font-semibold text-gray-800">{selectedTeacher.classes}</p>
+//                       </div>
+//                       <div className="md:col-span-2">
+//                         <label className="block text-sm font-medium text-gray-500 flex items-center gap-2">
+//                           <FaIdCard className="text-purple-500" />
+//                           Aadhar ID
+//                         </label>
+//                         <p className="font-semibold text-gray-800">{selectedTeacher.aadharId}</p>
+//                       </div>
+//                     </div>
+//                   </div>
+                  
+//                   <div className="bg-purple-50 p-4 rounded-lg">
+//                     <h4 className="font-semibold text-purple-700 mb-2">Leave & Contact Information</h4>
+//                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//                       <div>
+//                         <label className="block text-sm font-medium text-gray-500">Leave Reason</label>
+//                         <p className="font-semibold text-gray-800">{selectedTeacher.reason}</p>
+//                       </div>
+//                       <div>
+//                         <label className="block text-sm font-medium text-gray-500">Phone Number</label>
+//                         <p className="font-semibold text-gray-800">{selectedTeacher.phone}</p>
+//                       </div>
+//                       <div className="md:col-span-2">
+//                         <label className="block text-sm font-medium text-gray-500">Emergency Contact</label>
+//                         <p className="font-semibold text-gray-800">{selectedTeacher.emergency}</p>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default PrincipalDashboard;
+
+
+import { useState, useEffect, useRef } from 'react';
+import PrincipalSidebar from "../components/PrincipalSidebar";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+import { FaEye, FaSearch, FaBell, FaUserGraduate, FaChalkboardTeacher, FaCalendarTimes, FaUserInjured, FaCalendarCheck, FaArrowRight, FaArrowLeft, FaIdCard } from "react-icons/fa";
+
+const PrincipalDashboard = () => {
+  // Live time and date state
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [newsIndex, setNewsIndex] = useState(0);
+  
+  // Sample schedule data with live time status
+  const scheduleData = [
+    {
+      id: 1,
+      startTime: "09:00",
+      endTime: "10:00",
+      className: "Class 8A",
+      subject: "Mathematics",
+      room: "Room 101"
+    },
+    {
+      id: 2,
+      startTime: "10:00",
+      endTime: "11:00",
+      className: "Class 9B",
+      subject: "Mathematics",
+      room: "Room 102"
+    },
+    {
+      id: 3,
+      startTime: "11:30",
+      endTime: "12:30",
+      className: "Class 10A",
+      subject: "Mathematics",
+      room: "Room 103"
+    },
+    {
+      id: 4,
+      startTime: "14:00",
+      endTime: "15:00",
+      className: "Class 7C",
+      subject: "Mathematics",
+      room: "Room 104"
+    },
+    {
+      id: 5,
+      startTime: "15:30",
+      endTime: "16:30",
+      className: "Class 11B",
+      subject: "Physics",
+      room: "Lab 1"
+    }
+  ];
+
+  // Sample data for dashboard
+  const dashboardData = {
+    presentToday: 1150,
+    absentToday: 40
+  };
+
+  // Update time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Format time to 12-hour format with AM/PM
+  const formatTime = (date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    });
+  };
+
+  // Format date with weekday
+  const formatDate = (date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  // Format short date
+  const formatShortDate = (date) => {
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  // Get day of week
+  const getDayOfWeek = (date) => {
+    return date.toLocaleDateString('en-US', { weekday: 'long' });
+  };
+
+  // Get greeting based on time of day
+  const getGreeting = () => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 18) return "Good Afternoon";
+    return "Good Evening";
+  };
+
+  // Student data - Updated to match StaffDashboard format
+  const studentStats = {
+    total: 1250,
+    present: 1150,
+    sick: 35,
+    leave: 25,
+    absent: 40,
+    attendance: 92
+  };
+
+  // Teacher data - Updated to match StaffDashboard format
+  const teacherStats = {
+    total: 78,
+    present: 70,
+    absent: 5,
+    leave: 3,
+    attendance: 89.7
+  };
+
+  // Determine class status based on current time
+  const getClassStatus = (startTime, endTime) => {
+    const now = currentTime;
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    const [endHour, endMinute] = endTime.split(':').map(Number);
+    
+    const currentTotalMinutes = currentHour * 60 + currentMinute;
+    const startTotalMinutes = startHour * 60 + startMinute;
+    const endTotalMinutes = endHour * 60 + endMinute;
+    
+    if (currentTotalMinutes < startTotalMinutes - 5) {
+      return { status: 'upcoming', label: 'Upcoming', color: 'gray' };
+    } else if (currentTotalMinutes >= startTotalMinutes && currentTotalMinutes <= endTotalMinutes) {
+      return { status: 'ongoing', label: 'In Progress', color: 'blue' };
+    } else if (currentTotalMinutes > endTotalMinutes && currentTotalMinutes <= endTotalMinutes + 15) {
+      return { status: 'justended', label: 'Just Ended', color: 'yellow' };
+    } else if (currentTotalMinutes > endTotalMinutes + 15) {
+      return { status: 'completed', label: 'Completed', color: 'green' };
+    } else {
+      return { status: 'startingsoon', label: 'Starting Soon', color: 'orange' };
+    }
+  };
+
+  // Handle search
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Search functionality
+      console.log('Searching for:', searchQuery);
+      alert(`Search functionality would look for: "${searchQuery}"`);
+      setSearchQuery('');
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen">
+
+      {/* SIDEBAR */}
+      <div className="w-64 bg-blue-900 text-white">
+        <PrincipalSidebar />
+      </div>
+
+      {/* MAIN AREA */}
+      <div className="flex flex-col flex-1">
+
+        {/* HEADER */}
+        <Header />
+
+        {/* CONTENT */}
+        <main className="flex-1 p-6 bg-gray-100 overflow-y-auto">
+
+          {/* PAGE HEADER WITH LIVE TIME AND SEARCH - Updated to match StaffDashboard */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">Principal Dashboard</h1>
+              <p className="text-gray-600 mt-1">{getGreeting()}, Principal</p>
+            </div>
+            
+            {/* SEARCH AND TIME CONTAINER - Updated layout */}
+            <div className="flex flex-col md:flex-row items-center gap-4 mt-4 md:mt-0">
+              {/* SEARCH BAR - Updated to match StaffDashboard */}
+              <div className="w-full md:w-auto">
+                <form onSubmit={handleSearch} className="relative">
+                  <div className="flex items-center">
+                    <input
+                      type="text"
+                      placeholder="Search students, teachers, or ID..."
+                      className="px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full md:w-64"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <button
+                      type="submit"
+                      className="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      title="Search"
+                    >
+                      <FaSearch className="w-5 h-5" />
+                    </button>
+                  </div>
+                </form>
+              </div>
+              
+              
+                  
+                
+              
+            </div>
+          </div>
+
+          {/* FLASH NEWS - Updated to match StaffDashboard */}
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded mb-6 hover:bg-yellow-200 transition-colors duration-200 cursor-pointer">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="font-semibold text-yellow-800 flex items-center">
+                  <span className="mr-2">📢</span> Flash News - {formatShortDate(currentTime)}
+                </h2>
+                <marquee className="text-sm text-yellow-700 mt-1">
+                  Mid-term exams start from 20th Sept | Parent-teacher meeting on Friday | School annual day on 25th December | 
+                  Sports day competitions begin next week | Science exhibition entries open | Library week starting from 15th Oct |
+                  Live time: {formatTime(currentTime)} | Today is {getDayOfWeek(currentTime)}
+                </marquee>
+              </div>
+              <div className="text-xs text-yellow-700 bg-yellow-200 px-2 py-1 rounded">
+                Updated Just Now
+              </div>
+            </div>
+          </div>
+
+          {/* STUDENTS OVERVIEW CARDS - Updated to match StaffDashboard format */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-blue-600 rounded-lg">
+                <FaUserGraduate className="text-xl text-white" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-800">Students Overview</h2>
+            </div>
+            
+            {/* UPDATED CARDS LAYOUT to match StaffDashboard */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+              {/* Total Students */}
+              <div className="bg-white p-5 rounded shadow border-l-4 border-blue-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="flex justify-between items-start">
+                  <p className="text-sm text-gray-500">Total Students</p>
+                  <span className="text-xs text-gray-400">As of {formatTime(currentTime)}</span>
+                </div>
+                <h3 className="text-2xl font-bold mt-1">{studentStats.total}</h3>
+                <div className="mt-2 text-xs text-gray-400">
+                  Across all classes
+                </div>
+              </div>
+
+              {/* Present Today */}
+              <div className="bg-white p-5 rounded shadow border-l-4 border-green-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="flex justify-between items-start">
+                  <p className="text-sm text-gray-500">Present Today</p>
+                  <span className="text-xs text-gray-400">Updated Now</span>
+                </div>
+                <h3 className="text-2xl font-bold mt-1 text-green-600">{studentStats.present}</h3>
+                <div className="mt-2 text-xs text-gray-400">
+                  Students attended today
+                </div>
+              </div>
+
+              {/* Absent Today */}
+              <div className="bg-white p-5 rounded shadow border-l-4 border-red-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="flex justify-between items-start">
+                  <p className="text-sm text-gray-500">Absent Today</p>
+                  <span className="text-xs text-gray-400">Live Count</span>
+                </div>
+                <h3 className="text-2xl font-bold mt-1 text-red-600">{studentStats.absent}</h3>
+                <div className="mt-2 text-xs text-gray-400">
+                  Students absent today
+                </div>
+              </div>
+
+              {/* Classes Today */}
+              <div className="bg-white p-5 rounded shadow border-l-4 border-yellow-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="flex justify-between items-start">
+                  <p className="text-sm text-gray-500">Classes Today</p>
+                  <span className="text-xs text-gray-400">{scheduleData.length} sessions</span>
+                </div>
+                <h3 className="text-2xl font-bold mt-1">{scheduleData.length}</h3>
+                <div className="mt-2 text-xs text-gray-400">
+                  Scheduled for today
+                </div>
+              </div>
+
+              {/* Attendance Percentage */}
+              <div className="bg-white p-5 rounded shadow border-l-4 border-amber-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="flex justify-between items-start">
+                  <p className="text-sm text-gray-500">Attendance %</p>
+                  <span className="text-xs text-gray-400">Live</span>
+                </div>
+                <h3 className="text-2xl font-bold mt-1">{studentStats.attendance}%</h3>
+                <div className="mt-2 text-xs text-gray-400">
+                  Today's attendance rate
+                </div>
+              </div>
+            </div>
+
+            {/* ATTENDANCE SUMMARY WITH TIME - Updated to match StaffDashboard */}
+            <div className="mb-8 bg-white rounded shadow p-5 hover:shadow-lg transition-shadow duration-300">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="font-semibold">📊 Today's Student Attendance Summary</h2>
+                <div className="text-sm text-gray-500">
+                  Last updated: {formatTime(currentTime)}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200 cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Present</p>
+                      <p className="text-2xl font-bold text-green-700">{studentStats.present}</p>
+                    </div>
+                    <div className="text-green-600 text-2xl animate-pulse">
+                      ✓
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors duration-200 cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Absent</p>
+                      <p className="text-2xl font-bold text-red-700">{studentStats.absent}</p>
+                    </div>
+                    <div className="text-red-600 text-2xl">
+                      ✗
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200 cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Live Time</p>
+                      <p className="text-xl font-bold text-blue-700">{formatTime(currentTime)}</p>
+                    </div>
+                    <div className="text-blue-600 text-2xl">
+                      ⏰
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* TEACHERS OVERVIEW CARDS - Updated to match StaffDashboard format */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-purple-600 rounded-lg">
+                <FaChalkboardTeacher className="text-xl text-white" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-800">Teachers Overview</h2>
+            </div>
+            
+            {/* UPDATED CARDS LAYOUT to match StaffDashboard */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+              {/* Total Teachers */}
+              <div className="bg-white p-5 rounded shadow border-l-4 border-purple-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="flex justify-between items-start">
+                  <p className="text-sm text-gray-500">Total Teachers</p>
+                  <span className="text-xs text-gray-400">As of {formatTime(currentTime)}</span>
+                </div>
+                <h3 className="text-2xl font-bold mt-1">{teacherStats.total}</h3>
+                <div className="mt-2 text-xs text-gray-400">
+                  All departments
+                </div>
+              </div>
+
+              {/* Present Today */}
+              <div className="bg-white p-5 rounded shadow border-l-4 border-green-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="flex justify-between items-start">
+                  <p className="text-sm text-gray-500">Present Today</p>
+                  <span className="text-xs text-gray-400">Updated Now</span>
+                </div>
+                <h3 className="text-2xl font-bold mt-1 text-green-600">{teacherStats.present}</h3>
+                <div className="mt-2 text-xs text-gray-400">
+                  Teaching today
+                </div>
+              </div>
+
+              {/* Absent Teachers */}
+              <div className="bg-white p-5 rounded shadow border-l-4 border-red-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="flex justify-between items-start">
+                  <p className="text-sm text-gray-500">Absent Today</p>
+                  <span className="text-xs text-gray-400">Live Count</span>
+                </div>
+                <h3 className="text-2xl font-bold mt-1 text-red-600">{teacherStats.absent}</h3>
+                <div className="mt-2 text-xs text-gray-400">
+                  Teachers absent today
+                </div>
+              </div>
+
+              {/* On Leave */}
+              <div className="bg-white p-5 rounded shadow border-l-4 border-blue-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="flex justify-between items-start">
+                  <p className="text-sm text-gray-500">On Leave</p>
+                  <span className="text-xs text-gray-400">Approved leave</span>
+                </div>
+                <h3 className="text-2xl font-bold mt-1">{teacherStats.leave}</h3>
+                <div className="mt-2 text-xs text-gray-400">
+                  Leave approved
+                </div>
+              </div>
+
+              {/* Attendance Percentage */}
+              <div className="bg-white p-5 rounded shadow border-l-4 border-amber-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="flex justify-between items-start">
+                  <p className="text-sm text-gray-500">Attendance %</p>
+                  <span className="text-xs text-gray-400">Live</span>
+                </div>
+                <h3 className="text-2xl font-bold mt-1">{teacherStats.attendance}%</h3>
+                <div className="mt-2 text-xs text-gray-400">
+                  Today's attendance rate
+                </div>
+              </div>
+            </div>
+
+            {/* TEACHER ATTENDANCE SUMMARY - Updated to match StaffDashboard */}
+            <div className="mb-8 bg-white rounded shadow p-5 hover:shadow-lg transition-shadow duration-300">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="font-semibold">📊 Today's Teacher Attendance Summary</h2>
+                <div className="text-sm text-gray-500">
+                  Last updated: {formatTime(currentTime)}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200 cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Present</p>
+                      <p className="text-2xl font-bold text-green-700">{teacherStats.present}</p>
+                    </div>
+                    <div className="text-green-600 text-2xl animate-pulse">
+                      ✓
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors duration-200 cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Absent</p>
+                      <p className="text-2xl font-bold text-red-700">{teacherStats.absent}</p>
+                    </div>
+                    <div className="text-red-600 text-2xl">
+                      ✗
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors duration-200 cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Attendance %</p>
+                      <p className="text-2xl font-bold text-purple-700">{teacherStats.attendance}%</p>
+                    </div>
+                    <div className="text-purple-600 text-2xl">
+                      📊
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* TWO COLUMN SECTION - REPLACED WITH TODAY'S SCHEDULE AND RECENT ACTIVITY */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            {/* TODAY'S SCHEDULE WITH LIVE STATUS */}
+            <div className="bg-white rounded shadow p-5 hover:shadow-lg transition-shadow duration-300">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="font-semibold">📅 Today's Schedule</h2>
+                <div className="text-sm text-gray-500">
+                  {formatDate(currentTime)}
+                </div>
+              </div>
+              <ul className="space-y-3">
+                {scheduleData.map((classItem) => {
+                  const status = getClassStatus(classItem.startTime, classItem.endTime);
+                  const statusColors = {
+                    upcoming: 'bg-gray-100 text-gray-800',
+                    startingsoon: 'bg-orange-100 text-orange-800',
+                    ongoing: 'bg-blue-100 text-blue-800',
+                    justended: 'bg-yellow-100 text-yellow-800',
+                    completed: 'bg-green-100 text-green-800'
+                  };
+                  
+                  return (
+                    <li 
+                      key={classItem.id} 
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
+                    >
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium group-hover:text-gray-700 transition-colors">
+                            {classItem.startTime} – {classItem.endTime}
+                          </span>
+                          {status.status === 'ongoing' && (
+                            <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full animate-pulse">
+                              LIVE
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
+                          {classItem.className} ({classItem.subject})
+                        </p>
+                        <p className="text-xs text-gray-500">{classItem.room}</p>
+                      </div>
+                      <span className={`px-3 py-1 text-xs rounded-full transition-colors ${statusColors[status.status]}`}>
+                        {status.label}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+              
+              {/* LIVE TIME INDICATOR */}
+              <div className="mt-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-medium text-blue-800">Live Status Updates</span>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Next refresh in <span className="font-bold">{60 - currentTime.getSeconds()}</span>s
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* RECENT ACTIVITY WITH TIMESTAMPS */}
+            <div className="bg-white rounded shadow p-5 hover:shadow-lg transition-shadow duration-300">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="font-semibold">🕒 Recent Activity</h2>
+                <div className="text-sm text-gray-500">
+                  Updated {formatTime(currentTime)}
+                </div>
+              </div>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3 p-3 bg-green-50 rounded hover:bg-green-100 transition-colors duration-200 cursor-pointer group">
+                  <div className="text-green-600 mt-1 group-hover:scale-110 transition-transform">✓</div>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium group-hover:text-green-800 transition-colors">Attendance Marked</p>
+                      <span className="text-xs text-gray-500">{formatTime(new Date(currentTime.getTime() - 10 * 60000))}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
+                      Class 9B - {dashboardData.presentToday} present, {dashboardData.absentToday} absent
+                    </p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3 p-3 bg-blue-50 rounded hover:bg-blue-100 transition-colors duration-200 cursor-pointer group">
+                  <div className="text-blue-600 mt-1 group-hover:scale-110 transition-transform">📝</div>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium group-hover:text-blue-800 transition-colors">Results Updated</p>
+                      <span className="text-xs text-gray-500">{formatTime(new Date(currentTime.getTime() - 120 * 60000))}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
+                      Class 10 Mathematics exam results uploaded
+                    </p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3 p-3 bg-purple-50 rounded hover:bg-purple-100 transition-colors duration-200 cursor-pointer group">
+                  <div className="text-purple-600 mt-1 group-hover:scale-110 transition-transform">👨‍🏫</div>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium group-hover:text-purple-800 transition-colors">Class Assigned</p>
+                      <span className="text-xs text-gray-500">
+                        Yesterday, {formatTime(new Date(currentTime.getTime() - 24 * 60 * 60000))}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
+                      New class 8C assigned for Mathematics
+                    </p>
+                  </div>
+                </li>
+              </ul>
+              
+              {/* TIME TRACKER */}
+              <div className="mt-6 p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">Current Session:</span> {getDayOfWeek(currentTime)} Classes
+                  </div>
+                  <div className="text-sm font-medium text-gray-800">
+                    Day {Math.floor((currentTime.getHours() - 8) / 2) + 1} of 4
+                  </div>
+                </div>
+                <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-blue-500 transition-all duration-1000"
+                    style={{ 
+                      width: `${((currentTime.getHours() - 8) / 8) * 100}%`,
+                      maxWidth: '100%'
+                    }}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>8:00 AM</span>
+                  <span>Current: {formatTime(currentTime)}</span>
+                  <span>4:00 PM</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* DATE TIME FOOTER - Updated to match StaffDashboard */}
+          <div className="mt-8 p-4 bg-gray-800 text-white rounded-lg">
+            <div className="flex flex-col md:flex-row md:items-center justify-between">
+              <div>
+                <div className="text-sm text-gray-300">System Status</div>
+                <div className="text-lg font-bold">All Systems Operational</div>
+                <div className="text-xs text-gray-400 mt-1">
+                  Last system check: {formatTime(currentTime)}
+                </div>
+              </div>
+              <div className="mt-4 md:mt-0 text-center md:text-right">
+                <div className="text-3xl font-bold tracking-wider">
+                  {formatTime(currentTime)}
+                </div>
+                <div className="text-sm text-gray-300">
+                  {formatDate(currentTime)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </main>
+      </div>
+
+      {/* STUDENT DETAIL MODAL - Keeping for reference */}
+      {selectedStudent && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+          {/* Blurred background */}
+          <div className="absolute inset-0 backdrop-blur-md bg-black/30"></div>
+          
+          <div className="relative bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-blue-600 px-6 py-4 text-white rounded-t-lg flex justify-between items-center">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <FaUserGraduate />
+                Student Details
+              </h2>
+              <button onClick={() => setSelectedStudent(null)} className="text-white text-2xl hover:text-gray-200">×</button>
+            </div>
+            
+            <div className="p-6">
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="md:w-1/3 flex flex-col items-center">
+                  <div className="relative">
+                    <img
+                      src={selectedStudent.profilePhoto}
+                      className="w-48 h-48 rounded-lg border-4 border-white shadow-lg"
+                      alt={selectedStudent.name}
+                    />
+                    <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
+                      ID: {selectedStudent.id}
+                    </div>
+                  </div>
+                  <div className="mt-8 text-center">
+                    <h3 className="text-2xl font-bold text-gray-800">{selectedStudent.name}</h3>
+                    <p className="text-gray-600">Class {selectedStudent.class}-{selectedStudent.section}</p>
+                    <span className={`mt-3 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 justify-center ${getStatusColor(selectedStudent.status)}`}>
+                      {getStatusIcon(selectedStudent.status)}
+                      {selectedStudent.status.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="md:w-2/3">
+                  <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                    <h4 className="font-semibold text-blue-700 mb-2">Personal Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Roll Number</label>
+                        <p className="font-semibold text-gray-800">{selectedStudent.rollNo}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Student ID</label>
+                        <p className="font-semibold text-gray-800">{selectedStudent.id}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Father's Name</label>
+                        <p className="font-semibold text-gray-800">{selectedStudent.father}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Mother's Name</label>
+                        <p className="font-semibold text-gray-800">{selectedStudent.mother}</p>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-500 flex items-center gap-2">
+                          <FaIdCard className="text-blue-500" />
+                          Aadhar ID
+                        </label>
+                        <p className="font-semibold text-gray-800">{selectedStudent.aadharId}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-blue-700 mb-2">Contact Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Phone Number</label>
+                        <p className="font-semibold text-gray-800">{selectedStudent.phone}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Emergency Contact</label>
+                        <p className="font-semibold text-gray-800">{selectedStudent.emergency}</p>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-500">Address</label>
+                        <p className="font-semibold text-gray-800">{selectedStudent.address}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TEACHER DETAIL MODAL - Keeping for reference */}
+      {selectedTeacher && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+          {/* Blurred background */}
+          <div className="absolute inset-0 backdrop-blur-md bg-black/30"></div>
+          
+          <div className="relative bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-purple-600 px-6 py-4 text-white rounded-t-lg flex justify-between items-center">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <FaChalkboardTeacher />
+                Teacher Details
+              </h2>
+              <button onClick={() => setSelectedTeacher(null)} className="text-white text-2xl hover:text-gray-200">×</button>
+            </div>
+            
+            <div className="p-6">
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="md:w-1/3 flex flex-col items-center">
+                  <div className="relative">
+                    <img
+                      src={selectedTeacher.profilePhoto}
+                      className="w-48 h-48 rounded-lg border-4 border-white shadow-lg"
+                      alt={selectedTeacher.name}
+                    />
+                    <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white px-4 py-1 rounded-full text-sm font-medium">
+                      ID: {selectedTeacher.teacherId}
+                    </div>
+                  </div>
+                  <div className="mt-8 text-center">
+                    <h3 className="text-2xl font-bold text-gray-800">{selectedTeacher.name}</h3>
+                    <p className="text-gray-600">{selectedTeacher.subject} Teacher</p>
+                    <span className="mt-3 px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium flex items-center gap-2 justify-center">
+                      <FaCalendarTimes />
+                      ON LEAVE
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="md:w-2/3">
+                  <div className="bg-purple-50 p-4 rounded-lg mb-4">
+                    <h4 className="font-semibold text-purple-700 mb-2">Professional Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Teacher ID</label>
+                        <p className="font-semibold text-gray-800">{selectedTeacher.teacherId}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Subject</label>
+                        <p className="font-semibold text-gray-800">{selectedTeacher.subject}</p>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-500">Classes Assigned</label>
+                        <p className="font-semibold text-gray-800">{selectedTeacher.classes}</p>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-500 flex items-center gap-2">
+                          <FaIdCard className="text-purple-500" />
+                          Aadhar ID
+                        </label>
+                        <p className="font-semibold text-gray-800">{selectedTeacher.aadharId}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-purple-700 mb-2">Leave & Contact Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Leave Reason</label>
+                        <p className="font-semibold text-gray-800">{selectedTeacher.reason}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Phone Number</label>
+                        <p className="font-semibold text-gray-800">{selectedTeacher.phone}</p>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-500">Emergency Contact</label>
+                        <p className="font-semibold text-gray-800">{selectedTeacher.emergency}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default PrincipalDashboard;
