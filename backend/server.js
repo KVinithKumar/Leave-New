@@ -7,7 +7,7 @@ import staffRoutes from "./routes/staffRoute.js";
 import studentRoutes from "./routes/studentRoute.js";
 import leaveRoutes from "./routes/leaveRoute.js";
 import authRoutes from "./routes/authRoute.js";
-
+import attendanceRoutes from "./routes/attendanceRoute.js";
 dotenv.config();
 
 const app = express();
@@ -34,7 +34,7 @@ app.use("/api/staff", staffRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/leave-request", leaveRoutes);
 app.use("/api/auth", authRoutes);
-
+app.use("/api/attendance", attendanceRoutes);
 
 /* ---------- HEALTH CHECK ---------- */
 app.get("/", (req, res) => {

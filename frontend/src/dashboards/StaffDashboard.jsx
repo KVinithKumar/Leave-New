@@ -12,15 +12,40 @@ const StaffDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
-  
+  const [dashboardData, setDashboardData] = useState({
+  totalStudents: 0,
+  presentToday: 0,
+  absentToday: 0,
+  attendancePercentage: 0
+});
+
   // Sample data - In real app, this would come from API
-  const dashboardData = {
-    totalStudents: 450,
-    totalClassesAssigned: 6,
-    attendancePercentage: 92,
-    presentToday: 414,
-    absentToday: 36
+ useEffect(() => {
+  const fetchDashboardData = async () => {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+
+      const res = await fetch(
+        `/api/attendance/summary?date=${today}`
+      );
+
+      const data = await res.json();
+
+      setDashboardData({
+        totalStudents: data.total || 0,
+        presentToday: data.present || 0,
+        absentToday: data.absent || 0,
+        attendancePercentage: data.percentage || 0
+      });
+
+    } catch (err) {
+      console.error("Staff dashboard fetch error", err);
+    }
   };
+
+  fetchDashboardData();
+}, []);
+
 
   // Update time every second
   useEffect(() => {
@@ -82,6 +107,7 @@ const StaffDashboard = () => {
       setSearchQuery('');
     }
   };
+
 
   // Sample schedule data with live time status
   const scheduleData = [

@@ -1,1562 +1,3 @@
-// import { useState, useEffect, useRef } from 'react';
-// import PrincipalSidebar from "../components/PrincipalSidebar";
-// import Header from "../components/Header";
-// import Footer from "../components/Footer";
-// import { 
-//   FaUserGraduate, 
-//   FaChalkboardTeacher, 
-//   FaSearch, 
-//   FaCalendarCheck, 
-//   FaCalendarTimes, 
-//   FaUserInjured, 
-//   FaEye, 
-//   FaChevronRight,
-//   FaChevronLeft,
-//   FaIdCard,
-//   FaPhone,
-//   FaHome,
-//   FaHistory,
-//   FaChartBar,
-//   FaFilter,
-//   FaDownload,
-//   FaFileExcel,
-//   FaFilePdf,
-//   FaUserMd,
-//   FaBed
-// } from "react-icons/fa";
-// import { useLocation, useNavigate } from 'react-router-dom';
-// import * as XLSX from 'xlsx';
-// import jsPDF from 'jspdf';
-// import 'jspdf-autotable';
-
-// const AttendanceManagement = () => {
-//   const location = useLocation();
-//   const navigate = useNavigate();
-//   const [currentTime, setCurrentTime] = useState(new Date());
-//   const [searchQuery, setSearchQuery] = useState('');
-//   const [selectedStudent, setSelectedStudent] = useState(null);
-//   const [selectedTeacher, setSelectedTeacher] = useState(null);
-//   const [activeTab, setActiveTab] = useState('students');
-//   const [selectedClass, setSelectedClass] = useState('all');
-//   const [selectedSection, setSelectedSection] = useState('all');
-//   const [selectedDepartment, setSelectedDepartment] = useState('all');
-//   const [showClassDetails, setShowClassDetails] = useState(null);
-  
-//   // Check URL path to set active tab
-//   useEffect(() => {
-//     if (location.pathname.includes('/attendance/staff')) {
-//       setActiveTab('staff');
-//     } else {
-//       setActiveTab('students');
-//     }
-//   }, [location]);
-
-//   // Update time every second
-//   useEffect(() => {
-//     const timer = setInterval(() => {
-//       setCurrentTime(new Date());
-//     }, 1000);
-
-//     return () => clearInterval(timer);
-//   }, []);
-
-//   // Format time
-//   const formatTime = (date) => {
-//     return date.toLocaleTimeString('en-US', {
-//       hour: '2-digit',
-//       minute: '2-digit',
-//       second: '2-digit',
-//       hour12: true
-//     });
-//   };
-
-//   // Format date
-//   const formatDate = (date) => {
-//     return date.toLocaleDateString('en-US', {
-//       weekday: 'long',
-//       year: 'numeric',
-//       month: 'long',
-//       day: 'numeric'
-//     });
-//   };
-
-//   // Classes 1-10 with sections A, B
-//   const classes = Array.from({ length: 10 }, (_, i) => ({
-//     id: i + 1,
-//     name: `Class ${i + 1}`,
-//     sections: ['A', 'B']
-//   }));
-
-//   // All sections
-//   const sections = ['A', 'B'];
-
-//   // Departments for teachers
-//   const departments = [
-//     { id: 'math', name: 'Mathematics' },
-//     { id: 'science', name: 'Science' },
-//     { id: 'english', name: 'English' },
-//     { id: 'social', name: 'Social Studies' },
-//     { id: 'hindi', name: 'Hindi' },
-//     { id: 'computer', name: 'Computer Science' },
-//     { id: 'phyedu', name: 'Physical Education' },
-//     { id: 'arts', name: 'Arts & Crafts' }
-//   ];
-
-//   // Sample Student Attendance Data
-//   const studentAttendanceData = {
-//     '1A': { 
-//       total: 45, 
-//       present: 40, 
-//       absent: 3, 
-//       sick: 1, 
-//       leave: 1, 
-//       percentage: 88.9,
-//       students: [
-//         { id: "STU001", name: "Rahul Sharma", status: "absent", rollNo: "001" },
-//         { id: "STU002", name: "Priya Patel", status: "sick", rollNo: "002" },
-//         { id: "STU003", name: "Amit Kumar", status: "leave", rollNo: "003" },
-//         { id: "STU004", name: "Sneha Singh", status: "absent", rollNo: "004" },
-//         { id: "STU005", name: "Raj Verma", status: "absent", rollNo: "005" }
-//       ]
-//     },
-//     '1B': { 
-//       total: 42, 
-//       present: 38, 
-//       absent: 2, 
-//       sick: 1, 
-//       leave: 1, 
-//       percentage: 90.5,
-//       students: [
-//         { id: "STU006", name: "Karan Mehta", status: "sick", rollNo: "001" },
-//         { id: "STU007", name: "Neha Gupta", status: "leave", rollNo: "002" },
-//         { id: "STU008", name: "Rohit Sharma", status: "absent", rollNo: "003" },
-//         { id: "STU009", name: "Pooja Patel", status: "absent", rollNo: "004" }
-//       ]
-//     },
-//     // Add more class data as needed
-//   };
-
-//   // Sample Student Details
-//   const studentsData = [
-//     {
-//       id: "STU001",
-//       name: "Rahul Sharma",
-//       class: "10",
-//       section: "A",
-//       rollNo: "001",
-//       father: "Rajesh Sharma",
-//       mother: "Priya Sharma",
-//       phone: "9876543210",
-//       emergency: "9876543211",
-//       aadharId: "1234 5678 9012",
-//       address: "Mumbai, Maharashtra",
-//       attendance: {
-//         present: 95,
-//         absent: 3,
-//         sick: 1,
-//         leave: 1,
-//         percentage: 95
-//       },
-//       leaveHistory: [
-//         { date: "2024-01-15", reason: "Medical", approved: true },
-//         { date: "2024-02-20", reason: "Family Function", approved: true },
-//         { date: "2024-03-10", reason: "Medical", approved: true }
-//       ],
-//       profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rahul"
-//     },
-//     {
-//       id: "STU002",
-//       name: "Priya Patel",
-//       class: "10",
-//       section: "A",
-//       rollNo: "002",
-//       father: "Amit Patel",
-//       mother: "Neha Patel",
-//       phone: "9876543212",
-//       emergency: "9876543213",
-//       aadharId: "2345 6789 0123",
-//       address: "Ahmedabad, Gujarat",
-//       attendance: {
-//         present: 98,
-//         absent: 1,
-//         sick: 0,
-//         leave: 1,
-//         percentage: 98
-//       },
-//       leaveHistory: [
-//         { date: "2024-02-05", reason: "Personal", approved: true }
-//       ],
-//       profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Priya"
-//     },
-//     // Add more students as needed
-//   ];
-
-//   // Sample Teacher Attendance Data
-//   const teacherAttendanceData = {
-//     'math': { 
-//       total: 15, 
-//       present: 14, 
-//       absent: 1, 
-//       percentage: 93.3,
-//       teachers: [
-//         { id: "TCH001", name: "Dr. Ravi Kumar", status: "leave" },
-//       ]
-//     },
-//     'science': { 
-//       total: 18, 
-//       present: 17, 
-//       absent: 1, 
-//       percentage: 94.4,
-//       teachers: [
-//         { id: "TCH002", name: "Dr. Anjali Singh", status: "present" },
-//       ]
-//     },
-//     'english': { total: 12, present: 11, absent: 1, percentage: 91.7 },
-//     'social': { total: 10, present: 9, absent: 1, percentage: 90.0 },
-//     'hindi': { total: 8, present: 8, absent: 0, percentage: 100 },
-//     'computer': { total: 6, present: 6, absent: 0, percentage: 100 },
-//     'phyedu': { total: 4, present: 4, absent: 0, percentage: 100 },
-//     'arts': { total: 5, present: 5, absent: 0, percentage: 100 }
-//   };
-
-//   // Sample Teacher Details
-//   const teachersData = [
-//     {
-//       id: "TCH001",
-//       teacherId: "MATH001",
-//       name: "Dr. Ravi Kumar",
-//       department: "Mathematics",
-//       subject: "Mathematics",
-//       phone: "9000012345",
-//       emergency: "9000099999",
-//       aadharId: "3456 7890 1234",
-//       address: "Delhi, NCR",
-//       leaveBalance: 12,
-//       attendance: {
-//         present: 98,
-//         absent: 2,
-//         percentage: 98
-//       },
-//       leaveHistory: [
-//         { date: "2024-01-10", reason: "Medical", days: 2, approved: true },
-//         { date: "2024-03-05", reason: "Conference", days: 3, approved: true }
-//       ],
-//       currentLeave: {
-//         from: "2024-04-01",
-//         to: "2024-04-05",
-//         reason: "Personal",
-//         type: "Casual Leave"
-//       },
-//       profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ravi"
-//     },
-//     {
-//       id: "TCH002",
-//       teacherId: "SCI001",
-//       name: "Dr. Anjali Singh",
-//       department: "Science",
-//       subject: "Physics",
-//       phone: "9000023456",
-//       emergency: "9000088888",
-//       aadharId: "4567 8901 2345",
-//       address: "Bangalore, Karnataka",
-//       leaveBalance: 8,
-//       attendance: {
-//         present: 100,
-//         absent: 0,
-//         percentage: 100
-//       },
-//       leaveHistory: [
-//         { date: "2024-02-15", reason: "Medical", days: 1, approved: true }
-//       ],
-//       currentLeave: null,
-//       profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Anjali"
-//     },
-//   ];
-
-//   // Filter data based on selections
-//   const filteredStudentData = selectedClass === 'all' 
-//     ? studentAttendanceData 
-//     : Object.keys(studentAttendanceData).reduce((acc, key) => {
-//         if (selectedSection === 'all') {
-//           if (key.startsWith(selectedClass)) {
-//             acc[key] = studentAttendanceData[key];
-//           }
-//         } else {
-//           if (key === `${selectedClass}${selectedSection}`) {
-//             acc[key] = studentAttendanceData[key];
-//           }
-//         }
-//         return acc;
-//       }, {});
-
-//   const filteredTeacherData = selectedDepartment === 'all'
-//     ? teacherAttendanceData
-//     : { [selectedDepartment]: teacherAttendanceData[selectedDepartment] };
-
-//   // Calculate overall statistics
-//   const overallStudentStats = Object.values(studentAttendanceData).reduce((acc, curr) => ({
-//     total: acc.total + curr.total,
-//     present: acc.present + curr.present,
-//     absent: acc.absent + curr.absent,
-//     sick: acc.sick + curr.sick,
-//     leave: acc.leave + curr.leave
-//   }), { total: 0, present: 0, absent: 0, sick: 0, leave: 0 });
-
-//   overallStudentStats.percentage = overallStudentStats.total > 0 
-//     ? ((overallStudentStats.present / overallStudentStats.total) * 100).toFixed(1)
-//     : 0;
-
-//   const overallTeacherStats = Object.values(teacherAttendanceData).reduce((acc, curr) => ({
-//     total: acc.total + curr.total,
-//     present: acc.present + curr.present,
-//     absent: acc.absent + curr.absent
-//   }), { total: 0, present: 0, absent: 0 });
-
-//   overallTeacherStats.percentage = overallTeacherStats.total > 0
-//     ? ((overallTeacherStats.present / overallTeacherStats.total) * 100).toFixed(1)
-//     : 0;
-
-//   // Get status color
-//   const getStatusColor = (status) => {
-//     switch (status) {
-//       case 'absent': return 'bg-red-100 text-red-800';
-//       case 'sick': return 'bg-yellow-100 text-yellow-800';
-//       case 'leave': return 'bg-blue-100 text-blue-800';
-//       case 'present': return 'bg-green-100 text-green-800';
-//       default: return 'bg-gray-100 text-gray-800';
-//     }
-//   };
-
-//   // Get status text
-//   const getStatusText = (status) => {
-//     switch (status) {
-//       case 'absent': return 'Absent';
-//       case 'sick': return 'Sick';
-//       case 'leave': return 'On Leave';
-//       case 'present': return 'Present';
-//       default: return 'Unknown';
-//     }
-//   };
-
-//   // Handle tab change
-//   const handleTabChange = (tab) => {
-//     setActiveTab(tab);
-//     if (tab === 'students') {
-//       navigate('/principal/attendance/students');
-//     } else {
-//       navigate('/principal/attendance/staff');
-//     }
-//   };
-
-//   // Export to Excel function
-//   const exportToExcel = () => {
-//     const data = [];
-    
-//     if (activeTab === 'students') {
-//       // Add headers
-//       data.push(['Student ID', 'Name', 'Class', 'Section', 'Roll No', 'Status', 'Father Name', 'Mother Name', 'Phone', 'Emergency Contact', 'Aadhar ID', 'Address']);
-      
-//       // Add absent/sick/leave students
-//       studentsData.forEach(student => {
-//         data.push([
-//           student.id,
-//           student.name,
-//           student.class,
-//           student.section,
-//           student.rollNo,
-//           'Absent',
-//           student.father,
-//           student.mother,
-//           student.phone,
-//           student.emergency,
-//           student.aadharId,
-//           student.address
-//         ]);
-//       });
-      
-//       // Add attendance statistics
-//       data.push([]);
-//       data.push(['Overall Statistics']);
-//       data.push(['Total Students', overallStudentStats.total]);
-//       data.push(['Present', overallStudentStats.present]);
-//       data.push(['Absent', overallStudentStats.absent]);
-//       data.push(['Sick', overallStudentStats.sick]);
-//       data.push(['On Leave', overallStudentStats.leave]);
-//       data.push(['Attendance %', `${overallStudentStats.percentage}%`]);
-      
-//     } else {
-//       // Add headers for teachers
-//       data.push(['Teacher ID', 'Name', 'Department', 'Subject', 'Status', 'Phone', 'Emergency Contact', 'Leave Balance', 'Aadhar ID', 'Address']);
-      
-//       // Add absent teachers
-//       teachersData.forEach(teacher => {
-//         if (teacher.currentLeave) {
-//           data.push([
-//             teacher.teacherId,
-//             teacher.name,
-//             teacher.department,
-//             teacher.subject,
-//             'On Leave',
-//             teacher.phone,
-//             teacher.emergency,
-//             teacher.leaveBalance,
-//             teacher.aadharId,
-//             teacher.address
-//           ]);
-//         }
-//       });
-      
-//       // Add attendance statistics
-//       data.push([]);
-//       data.push(['Overall Statistics']);
-//       data.push(['Total Teachers', overallTeacherStats.total]);
-//       data.push(['Present', overallTeacherStats.present]);
-//       data.push(['Absent', overallTeacherStats.absent]);
-//       data.push(['Attendance %', `${overallTeacherStats.percentage}%`]);
-//     }
-    
-//     const ws = XLSX.utils.aoa_to_sheet(data);
-//     const wb = XLSX.utils.book_new();
-//     XLSX.utils.book_append_sheet(wb, ws, 'Attendance Report');
-    
-//     const fileName = activeTab === 'students' 
-//       ? `Student_Attendance_Report_${new Date().toISOString().split('T')[0]}.xlsx`
-//       : `Teacher_Attendance_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
-    
-//     XLSX.writeFile(wb, fileName);
-//   };
-
-//   // Export to PDF function
-//   const exportToPDF = () => {
-//     const doc = new jsPDF();
-//     const pageWidth = doc.internal.pageSize.width;
-    
-//     // Add title
-//     doc.setFontSize(18);
-//     doc.setTextColor(0, 0, 128);
-//     doc.text(activeTab === 'students' ? 'Student Attendance Report' : 'Teacher Attendance Report', pageWidth / 2, 15, { align: 'center' });
-    
-//     // Add date
-//     doc.setFontSize(10);
-//     doc.setTextColor(100, 100, 100);
-//     doc.text(`Generated on: ${new Date().toLocaleDateString()} ${formatTime(new Date())}`, pageWidth / 2, 22, { align: 'center' });
-    
-//     let yPos = 35;
-    
-//     if (activeTab === 'students') {
-//       // Add statistics
-//       doc.setFontSize(14);
-//       doc.setTextColor(0, 0, 0);
-//       doc.text('Overall Statistics', 14, yPos);
-//       yPos += 10;
-      
-//       doc.setFontSize(11);
-//       doc.text(`Total Students: ${overallStudentStats.total}`, 20, yPos);
-//       yPos += 7;
-//       doc.text(`Present: ${overallStudentStats.present}`, 20, yPos);
-//       yPos += 7;
-//       doc.text(`Absent: ${overallStudentStats.absent}`, 20, yPos);
-//       yPos += 7;
-//       doc.text(`Sick: ${overallStudentStats.sick}`, 20, yPos);
-//       yPos += 7;
-//       doc.text(`On Leave: ${overallStudentStats.leave}`, 20, yPos);
-//       yPos += 7;
-//       doc.text(`Attendance Percentage: ${overallStudentStats.percentage}%`, 20, yPos);
-//       yPos += 15;
-      
-//       // Add absent students table
-//       doc.setFontSize(14);
-//       doc.text('Absent/Sick/Leave Students Details', 14, yPos);
-//       yPos += 10;
-      
-//       const tableData = studentsData.map(student => [
-//         student.id,
-//         student.name,
-//         `${student.class}-${student.section}`,
-//         student.rollNo,
-//         'Absent',
-//         student.phone
-//       ]);
-      
-//       doc.autoTable({
-//         startY: yPos,
-//         head: [['Student ID', 'Name', 'Class-Section', 'Roll No', 'Status', 'Contact']],
-//         body: tableData,
-//         theme: 'grid',
-//         headStyles: { fillColor: [0, 0, 128] },
-//         margin: { top: yPos }
-//       });
-      
-//     } else {
-//       // Add statistics for teachers
-//       doc.setFontSize(14);
-//       doc.setTextColor(0, 0, 0);
-//       doc.text('Overall Statistics', 14, yPos);
-//       yPos += 10;
-      
-//       doc.setFontSize(11);
-//       doc.text(`Total Teachers: ${overallTeacherStats.total}`, 20, yPos);
-//       yPos += 7;
-//       doc.text(`Present: ${overallTeacherStats.present}`, 20, yPos);
-//       yPos += 7;
-//       doc.text(`Absent: ${overallTeacherStats.absent}`, 20, yPos);
-//       yPos += 7;
-//       doc.text(`Attendance Percentage: ${overallTeacherStats.percentage}%`, 20, yPos);
-//       yPos += 15;
-      
-//       // Add absent teachers table
-//       doc.setFontSize(14);
-//       doc.text('Absent Teachers Details', 14, yPos);
-//       yPos += 10;
-      
-//       const tableData = teachersData
-//         .filter(teacher => teacher.currentLeave)
-//         .map(teacher => [
-//           teacher.teacherId,
-//           teacher.name,
-//           teacher.department,
-//           teacher.currentLeave?.type || 'N/A',
-//           teacher.phone,
-//           teacher.leaveBalance
-//         ]);
-      
-//       doc.autoTable({
-//         startY: yPos,
-//         head: [['Teacher ID', 'Name', 'Department', 'Leave Type', 'Contact', 'Leave Balance']],
-//         body: tableData,
-//         theme: 'grid',
-//         headStyles: { fillColor: [128, 0, 128] },
-//         margin: { top: yPos }
-//       });
-//     }
-    
-//     const fileName = activeTab === 'students' 
-//       ? `Student_Attendance_Report_${new Date().toISOString().split('T')[0]}.pdf`
-//       : `Teacher_Attendance_Report_${new Date().toISOString().split('T')[0]}.pdf`;
-    
-//     doc.save(fileName);
-//   };
-
-//   return (
-//     <div className="flex min-h-screen">
-//       {/* SIDEBAR */}
-//       <div className="w-64 bg-blue-900 text-white">
-//         <PrincipalSidebar />
-//       </div>
-
-//       {/* MAIN AREA */}
-//       <div className="flex flex-col flex-1">
-//         {/* HEADER */}
-//         <Header />
-
-//         {/* CONTENT */}
-//         <main className="flex-1 p-6 bg-gray-100 overflow-y-auto">
-//           {/* PAGE HEADER */}
-//           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-//             <div>
-//               <h1 className="text-2xl font-bold text-gray-800">Attendance Management</h1>
-//               <p className="text-gray-600 mt-1">{formatDate(currentTime)} • {formatTime(currentTime)}</p>
-//             </div>
-            
-//             <div className="flex items-center gap-4 mt-4 md:mt-0">
-//               {/* SEARCH BAR */}
-//               <div className="md:w-64">
-//                 <form className="relative">
-//                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-//                     <FaSearch className="h-4 w-4 text-gray-400" />
-//                   </div>
-//                   <input
-//                     type="text"
-//                     value={searchQuery}
-//                     onChange={(e) => setSearchQuery(e.target.value)}
-//                     placeholder="Search ID, Name..."
-//                     className="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
-//                   />
-//                 </form>
-//               </div>
-              
-//               {/* EXPORT BUTTONS */}
-//               <div className="flex gap-2">
-//                 <button 
-//                   onClick={exportToExcel}
-//                   className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-//                 >
-//                   <FaFileExcel />
-//                   Excel
-//                 </button>
-//                 <button 
-//                   onClick={exportToPDF}
-//                   className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-//                 >
-//                   <FaFilePdf />
-//                   PDF
-//                 </button>
-//               </div>
-//             </div>
-//           </div>
-
-//           {/* TABS NAVIGATION */}
-//           <div className="mb-6">
-//             <div className="flex border-b border-gray-200">
-//               <button
-//                 onClick={() => handleTabChange('students')}
-//                 className={`flex items-center gap-2 px-6 py-3 font-medium text-sm border-b-2 transition-all ${activeTab === 'students' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-//               >
-//                 <FaUserGraduate />
-//                 Students Attendance
-//               </button>
-//               <button
-//                 onClick={() => handleTabChange('staff')}
-//                 className={`flex items-center gap-2 px-6 py-3 font-medium text-sm border-b-2 transition-all ${activeTab === 'staff' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
-//               >
-//                 <FaChalkboardTeacher />
-//                 Staff Attendance
-//               </button>
-//             </div>
-//           </div>
-
-//           {/* STUDENTS ATTENDANCE TAB */}
-//           {activeTab === 'students' && (
-//             <div>
-//               {/* OVERALL STATS */}
-//               <div className="mb-8">
-//                 <div className="flex items-center justify-between mb-4">
-//                   <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-//                     <FaChartBar className="text-blue-600" />
-//                     Overall Student Attendance
-//                   </h2>
-//                   <div className="flex items-center gap-2 text-sm text-gray-600">
-//                     <FaFilter />
-//                     <select 
-//                       value={selectedClass}
-//                       onChange={(e) => setSelectedClass(e.target.value)}
-//                       className="border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                     >
-//                       <option value="all">All Classes</option>
-//                       {classes.map(cls => (
-//                         <option key={cls.id} value={cls.id}>
-//                           Class {cls.id}
-//                         </option>
-//                       ))}
-//                     </select>
-//                     <select 
-//                       value={selectedSection}
-//                       onChange={(e) => setSelectedSection(e.target.value)}
-//                       className="border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                     >
-//                       <option value="all">All Sections</option>
-//                       {sections.map(section => (
-//                         <option key={section} value={section}>
-//                           Section {section}
-//                         </option>
-//                       ))}
-//                     </select>
-//                   </div>
-//                 </div>
-                
-//                 <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
-//                   <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-6 text-white">
-//                     <div className="flex justify-between items-start">
-//                       <div>
-//                         <p className="text-blue-200">Total Students</p>
-//                         <h3 className="text-3xl font-bold mt-1">{overallStudentStats.total}</h3>
-//                       </div>
-//                       <FaUserGraduate className="text-2xl opacity-80" />
-//                     </div>
-//                     <div className="mt-4 text-sm text-blue-200">
-//                       Across all classes and sections
-//                     </div>
-//                   </div>
-
-//                   <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-lg shadow-lg p-6 text-white">
-//                     <div className="flex justify-between items-start">
-//                       <div>
-//                         <p className="text-green-200">Present Today</p>
-//                         <h3 className="text-3xl font-bold mt-1">{overallStudentStats.present}</h3>
-//                       </div>
-//                       <FaCalendarCheck className="text-2xl opacity-80" />
-//                     </div>
-//                     <div className="mt-4 text-sm text-green-200">
-//                       {((overallStudentStats.present / overallStudentStats.total) * 100).toFixed(1)}% Attendance
-//                     </div>
-//                   </div>
-
-//                   <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-lg shadow-lg p-6 text-white">
-//                     <div className="flex justify-between items-start">
-//                       <div>
-//                         <p className="text-red-200">Absent Today</p>
-//                         <h3 className="text-3xl font-bold mt-1">{overallStudentStats.absent}</h3>
-//                       </div>
-//                       <FaUserInjured className="text-2xl opacity-80" />
-//                     </div>
-//                     <div className="mt-4 text-sm text-red-200">
-//                       Without notice
-//                     </div>
-//                   </div>
-
-//                   <div className="bg-gradient-to-r from-yellow-600 to-yellow-700 rounded-lg shadow-lg p-6 text-white">
-//                     <div className="flex justify-between items-start">
-//                       <div>
-//                         <p className="text-yellow-200">Sick Leave</p>
-//                         <h3 className="text-3xl font-bold mt-1">{overallStudentStats.sick}</h3>
-//                       </div>
-//                       <FaBed className="text-2xl opacity-80" />
-//                     </div>
-//                     <div className="mt-4 text-sm text-yellow-200">
-//                       Medical leave
-//                     </div>
-//                   </div>
-
-//                   <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg shadow-lg p-6 text-white">
-//                     <div className="flex justify-between items-start">
-//                       <div>
-//                         <p className="text-purple-200">Approved Leave</p>
-//                         <h3 className="text-3xl font-bold mt-1">{overallStudentStats.leave}</h3>
-//                       </div>
-//                       <FaCalendarTimes className="text-2xl opacity-80" />
-//                     </div>
-//                     <div className="mt-4 text-sm text-purple-200">
-//                       Official leave
-//                     </div>
-//                   </div>
-//                 </div>
-
-//                 {/* ATTENDANCE PERCENTAGE CARD */}
-//                 <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-//                   <div className="flex justify-between items-center mb-4">
-//                     <h2 className="font-semibold text-gray-800 flex items-center gap-2">
-//                       <FaChartBar className="text-blue-600" />
-//                       Overall Attendance Percentage: {overallStudentStats.percentage}%
-//                     </h2>
-//                     <span className="text-sm text-gray-500">Updated: {formatTime(currentTime)}</span>
-//                   </div>
-//                   <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
-//                     <div 
-//                       className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
-//                       style={{ width: `${overallStudentStats.percentage}%` }}
-//                     />
-//                   </div>
-//                   <div className="flex justify-between text-xs text-gray-600 mt-2">
-//                     <span>0%</span>
-//                     <span>50%</span>
-//                     <span>100%</span>
-//                   </div>
-//                 </div>
-//               </div>
-
-//               {/* CLASS-WISE ATTENDANCE */}
-//               <div className="mb-8">
-//                 <div className="flex items-center justify-between mb-4">
-//                   <h2 className="text-xl font-bold text-gray-800">Class-wise Attendance</h2>
-//                   <p className="text-gray-600 text-sm">Click on View Details to see student list</p>
-//                 </div>
-//                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-//                   {Object.entries(filteredStudentData).map(([className, data]) => (
-//                     <div key={className} className="bg-gradient-to-br from-white to-blue-50 rounded-lg shadow-lg p-4 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-blue-100">
-//                       <div className="flex justify-between items-start mb-3">
-//                         <div>
-//                           <h3 className="font-bold text-gray-800 text-lg">{className}</h3>
-//                           <p className="text-sm text-gray-600">Total: {data.total} students</p>
-//                         </div>
-//                         <span className={`px-3 py-1 text-xs rounded-full font-semibold ${data.percentage >= 90 ? 'bg-green-100 text-green-800' : data.percentage >= 80 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-//                           {data.percentage}%
-//                         </span>
-//                       </div>
-                      
-//                       <div className="space-y-2 mb-4">
-//                         <div className="flex justify-between text-sm">
-//                           <span className="text-gray-600">Present</span>
-//                           <span className="font-semibold text-green-600">{data.present}</span>
-//                         </div>
-//                         <div className="flex justify-between text-sm">
-//                           <span className="text-gray-600">Absent</span>
-//                           <span className="font-semibold text-red-600">{data.absent}</span>
-//                         </div>
-//                         <div className="flex justify-between text-sm">
-//                           <span className="text-gray-600">Sick</span>
-//                           <span className="font-semibold text-yellow-600">{data.sick}</span>
-//                         </div>
-//                         <div className="flex justify-between text-sm">
-//                           <span className="text-gray-600">Leave</span>
-//                           <span className="font-semibold text-blue-600">{data.leave}</span>
-//                         </div>
-//                       </div>
-                      
-//                       <button 
-//                         onClick={() => setShowClassDetails(className)}
-//                         className="w-full mt-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-1 transition-colors"
-//                       >
-//                         View Details <FaChevronRight className="text-xs" />
-//                       </button>
-//                     </div>
-//                   ))}
-//                 </div>
-//               </div>
-
-//               {/* CLASS DETAILS MODAL */}
-//               {showClassDetails && (
-//                 <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-//                   <div className="absolute inset-0 backdrop-blur-md bg-black/30"></div>
-                  
-//                   <div className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-//                     <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 text-white rounded-t-2xl flex justify-between items-center">
-//                       <h2 className="text-xl font-bold">
-//                         Class {showClassDetails} - Student Details
-//                       </h2>
-//                       <button onClick={() => setShowClassDetails(null)} className="text-white text-2xl hover:text-gray-200">×</button>
-//                     </div>
-                    
-//                     <div className="p-6">
-//                       <div className="mb-6">
-//                         <h3 className="text-lg font-semibold text-gray-800 mb-3">Attendance Summary</h3>
-//                         <div className="grid grid-cols-4 gap-4">
-//                           <div className="bg-green-50 p-3 rounded-lg">
-//                             <p className="text-sm text-gray-600">Present</p>
-//                             <p className="text-2xl font-bold text-green-600">{studentAttendanceData[showClassDetails]?.present || 0}</p>
-//                           </div>
-//                           <div className="bg-red-50 p-3 rounded-lg">
-//                             <p className="text-sm text-gray-600">Absent</p>
-//                             <p className="text-2xl font-bold text-red-600">{studentAttendanceData[showClassDetails]?.absent || 0}</p>
-//                           </div>
-//                           <div className="bg-yellow-50 p-3 rounded-lg">
-//                             <p className="text-sm text-gray-600">Sick</p>
-//                             <p className="text-2xl font-bold text-yellow-600">{studentAttendanceData[showClassDetails]?.sick || 0}</p>
-//                           </div>
-//                           <div className="bg-blue-50 p-3 rounded-lg">
-//                             <p className="text-sm text-gray-600">Leave</p>
-//                             <p className="text-2xl font-bold text-blue-600">{studentAttendanceData[showClassDetails]?.leave || 0}</p>
-//                           </div>
-//                         </div>
-//                       </div>
-                      
-//                       <div>
-//                         <h3 className="text-lg font-semibold text-gray-800 mb-3">Student List</h3>
-//                         <div className="overflow-x-auto">
-//                           <table className="w-full">
-//                             <thead>
-//                               <tr className="bg-gray-50">
-//                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roll No</th>
-//                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
-//                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-//                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-//                               </tr>
-//                             </thead>
-//                             <tbody className="divide-y divide-gray-200">
-//                               {studentAttendanceData[showClassDetails]?.students?.map((student) => (
-//                                 <tr key={student.id} className="hover:bg-gray-50">
-//                                   <td className="px-4 py-3">
-//                                     <span className="font-medium">{student.rollNo}</span>
-//                                   </td>
-//                                   <td className="px-4 py-3">
-//                                     <div className="flex items-center">
-//                                       <div className="ml-4">
-//                                         <p className="font-medium text-gray-900">{student.name}</p>
-//                                         <p className="text-sm text-gray-500">ID: {student.id}</p>
-//                                       </div>
-//                                     </div>
-//                                   </td>
-//                                   <td className="px-4 py-3">
-//                                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(student.status)}`}>
-//                                       {getStatusText(student.status)}
-//                                     </span>
-//                                   </td>
-//                                   <td className="px-4 py-3">
-//                                     <button 
-//                                       onClick={() => {
-//                                         const foundStudent = studentsData.find(s => s.id === student.id);
-//                                         if (foundStudent) setSelectedStudent(foundStudent);
-//                                       }}
-//                                       className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1"
-//                                     >
-//                                       <FaEye />
-//                                       View Profile
-//                                     </button>
-//                                   </td>
-//                                 </tr>
-//                               ))}
-//                             </tbody>
-//                           </table>
-//                         </div>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </div>
-//               )}
-
-//               {/* ABSENT STUDENTS LIST */}
-//               <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-//                 <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
-//                   <h2 className="text-xl font-bold text-white flex items-center gap-3">
-//                     <FaUserInjured className="text-2xl" />
-//                     Today's Absent Students
-//                   </h2>
-//                   <div className="text-red-200 text-sm mt-1">
-//                     Total: {overallStudentStats.absent + overallStudentStats.sick + overallStudentStats.leave} students
-//                   </div>
-//                 </div>
-                
-//                 <div className="p-5">
-//                   <div className="overflow-x-auto">
-//                     <table className="w-full">
-//                       <thead>
-//                         <tr className="bg-gray-50">
-//                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
-//                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class & Section</th>
-//                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-//                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-//                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-//                         </tr>
-//                       </thead>
-//                       <tbody className="divide-y divide-gray-200">
-//                         {studentsData.map((student) => (
-//                           <tr key={student.id} className="hover:bg-gray-50">
-//                             <td className="px-4 py-3">
-//                               <div className="flex items-center">
-//                                 <img src={student.profilePhoto} alt={student.name} className="w-10 h-10 rounded-full mr-3" />
-//                                 <div>
-//                                   <p className="font-medium text-gray-900">{student.name}</p>
-//                                   <p className="text-sm text-gray-500">ID: {student.id}</p>
-//                                 </div>
-//                               </div>
-//                             </td>
-//                             <td className="px-4 py-3">
-//                               <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-//                                 {student.class}-{student.section}
-//                               </span>
-//                             </td>
-//                             <td className="px-4 py-3">
-//                               <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
-//                                 Absent
-//                               </span>
-//                             </td>
-//                             <td className="px-4 py-3">
-//                               <p className="text-sm text-gray-900">{student.phone}</p>
-//                               <p className="text-xs text-gray-500">Emergency: {student.emergency}</p>
-//                             </td>
-//                             <td className="px-4 py-3">
-//                               <button 
-//                                 onClick={() => setSelectedStudent(student)}
-//                                 className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1"
-//                               >
-//                                 <FaEye />
-//                                 View Profile
-//                               </button>
-//                             </td>
-//                           </tr>
-//                         ))}
-//                       </tbody>
-//                     </table>
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-//           )}
-
-//           {/* STAFF ATTENDANCE TAB */}
-//           {activeTab === 'staff' && (
-//             <div>
-//               {/* OVERALL STATS */}
-//               <div className="mb-8">
-//                 <div className="flex items-center justify-between mb-4">
-//                   <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-//                     <FaChartBar className="text-purple-600" />
-//                     Overall Staff Attendance
-//                   </h2>
-//                   <div className="flex items-center gap-2 text-sm text-gray-600">
-//                     <FaFilter />
-//                     <select 
-//                       value={selectedDepartment}
-//                       onChange={(e) => setSelectedDepartment(e.target.value)}
-//                       className="border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-purple-500"
-//                     >
-//                       <option value="all">All Departments</option>
-//                       {departments.map(dept => (
-//                         <option key={dept.id} value={dept.id}>
-//                           {dept.name}
-//                         </option>
-//                       ))}
-//                     </select>
-//                   </div>
-//                 </div>
-                
-//                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-//                   <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg shadow-lg p-6 text-white">
-//                     <div className="flex justify-between items-start">
-//                       <div>
-//                         <p className="text-purple-200">Total Teachers</p>
-//                         <h3 className="text-3xl font-bold mt-1">{overallTeacherStats.total}</h3>
-//                       </div>
-//                       <FaChalkboardTeacher className="text-2xl opacity-80" />
-//                     </div>
-//                     <div className="mt-4 text-sm text-purple-200">
-//                       Across all departments
-//                     </div>
-//                   </div>
-
-//                   <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-lg shadow-lg p-6 text-white">
-//                     <div className="flex justify-between items-start">
-//                       <div>
-//                         <p className="text-green-200">Present Today</p>
-//                         <h3 className="text-3xl font-bold mt-1">{overallTeacherStats.present}</h3>
-//                       </div>
-//                       <FaCalendarCheck className="text-2xl opacity-80" />
-//                     </div>
-//                     <div className="mt-4 text-sm text-green-200">
-//                       {overallTeacherStats.percentage}% Attendance
-//                     </div>
-//                   </div>
-
-//                   <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-lg shadow-lg p-6 text-white">
-//                     <div className="flex justify-between items-start">
-//                       <div>
-//                         <p className="text-red-200">Absent Today</p>
-//                         <h3 className="text-3xl font-bold mt-1">{overallTeacherStats.absent}</h3>
-//                       </div>
-//                       <FaUserInjured className="text-2xl opacity-80" />
-//                     </div>
-//                     <div className="mt-4 text-sm text-red-200">
-//                       Without notice
-//                     </div>
-//                   </div>
-
-//                   <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-lg shadow-lg p-6 text-white">
-//                     <div className="flex justify-between items-start">
-//                       <div>
-//                         <p className="text-orange-200">On Leave</p>
-//                         <h3 className="text-3xl font-bold mt-1">{teachersData.filter(t => t.currentLeave).length}</h3>
-//                       </div>
-//                       <FaCalendarTimes className="text-2xl opacity-80" />
-//                     </div>
-//                     <div className="mt-4 text-sm text-orange-200">
-//                       Approved leave
-//                     </div>
-//                   </div>
-//                 </div>
-
-//                 {/* ATTENDANCE PERCENTAGE CARD */}
-//                 <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-//                   <div className="flex justify-between items-center mb-4">
-//                     <h2 className="font-semibold text-gray-800 flex items-center gap-2">
-//                       <FaChartBar className="text-purple-600" />
-//                       Overall Staff Attendance Percentage: {overallTeacherStats.percentage}%
-//                     </h2>
-//                     <span className="text-sm text-gray-500">Updated: {formatTime(currentTime)}</span>
-//                   </div>
-//                   <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
-//                     <div 
-//                       className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
-//                       style={{ width: `${overallTeacherStats.percentage}%` }}
-//                     />
-//                   </div>
-//                   <div className="flex justify-between text-xs text-gray-600 mt-2">
-//                     <span>0%</span>
-//                     <span>50%</span>
-//                     <span>100%</span>
-//                   </div>
-//                 </div>
-//               </div>
-
-//               {/* DEPARTMENT-WISE ATTENDANCE */}
-//               <div className="mb-8">
-//                 <h2 className="text-xl font-bold text-gray-800 mb-4">Department-wise Attendance</h2>
-//                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-//                   {Object.entries(filteredTeacherData).map(([deptId, data]) => {
-//                     const dept = departments.find(d => d.id === deptId);
-//                     return (
-//                       <div key={deptId} className="bg-gradient-to-br from-white to-purple-50 rounded-lg shadow-lg p-4 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-purple-100">
-//                         <div className="flex justify-between items-start mb-3">
-//                           <div>
-//                             <h3 className="font-bold text-gray-800 text-lg">{dept?.name}</h3>
-//                             <p className="text-sm text-gray-600">Total: {data.total} teachers</p>
-//                           </div>
-//                           <span className={`px-3 py-1 text-xs rounded-full font-semibold ${data.percentage >= 90 ? 'bg-green-100 text-green-800' : data.percentage >= 80 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-//                             {data.percentage}%
-//                           </span>
-//                         </div>
-                        
-//                         <div className="space-y-2 mb-4">
-//                           <div className="flex justify-between text-sm">
-//                             <span className="text-gray-600">Present</span>
-//                             <span className="font-semibold text-green-600">{data.present}</span>
-//                           </div>
-//                           <div className="flex justify-between text-sm">
-//                             <span className="text-gray-600">Absent</span>
-//                             <span className="font-semibold text-red-600">{data.absent}</span>
-//                           </div>
-//                         </div>
-                        
-//                         <button 
-//                           onClick={() => {
-//                             setSelectedDepartment(deptId);
-//                           }}
-//                           className="w-full mt-4 py-2 text-sm font-medium bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-1 transition-colors"
-//                         >
-//                           View Department <FaChevronRight className="text-xs" />
-//                         </button>
-//                       </div>
-//                     );
-//                   })}
-//                 </div>
-//               </div>
-
-//               {/* ABSENT TEACHERS LIST */}
-//               <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-//                 <div className="bg-gradient-to-r from-orange-600 to-orange-700 px-6 py-4">
-//                   <h2 className="text-xl font-bold text-white flex items-center gap-3">
-//                     <FaCalendarTimes className="text-2xl" />
-//                     Today's Absent Staff
-//                   </h2>
-//                   <div className="text-orange-200 text-sm mt-1">
-//                     Total: {overallTeacherStats.absent} teachers
-//                   </div>
-//                 </div>
-                
-//                 <div className="p-5">
-//                   <div className="overflow-x-auto">
-//                     <table className="w-full">
-//                       <thead>
-//                         <tr className="bg-gray-50">
-//                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
-//                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-//                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Leave Balance</th>
-//                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-//                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-//                         </tr>
-//                       </thead>
-//                       <tbody className="divide-y divide-gray-200">
-//                         {teachersData.map((teacher) => (
-//                           <tr key={teacher.id} className="hover:bg-gray-50">
-//                             <td className="px-4 py-3">
-//                               <div className="flex items-center">
-//                                 <img src={teacher.profilePhoto} alt={teacher.name} className="w-10 h-10 rounded-full mr-3" />
-//                                 <div>
-//                                   <p className="font-medium text-gray-900">{teacher.name}</p>
-//                                   <p className="text-sm text-gray-500">ID: {teacher.teacherId}</p>
-//                                 </div>
-//                               </div>
-//                             </td>
-//                             <td className="px-4 py-3">
-//                               <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
-//                                 {teacher.department}
-//                               </span>
-//                             </td>
-//                             <td className="px-4 py-3">
-//                               <div className="text-center">
-//                                 <span className="text-lg font-bold text-blue-600">{teacher.leaveBalance}</span>
-//                                 <p className="text-xs text-gray-500">Days Left</p>
-//                               </div>
-//                             </td>
-//                             <td className="px-4 py-3">
-//                               {teacher.currentLeave ? (
-//                                 <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">
-//                                   On Leave ({teacher.currentLeave.type})
-//                                 </span>
-//                               ) : (
-//                                 <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-//                                   Present
-//                                 </span>
-//                               )}
-//                             </td>
-//                             <td className="px-4 py-3">
-//                               <button 
-//                                 onClick={() => setSelectedTeacher(teacher)}
-//                                 className="text-purple-600 hover:text-purple-800 font-medium text-sm flex items-center gap-1"
-//                               >
-//                                 <FaEye />
-//                                 View Details
-//                               </button>
-//                             </td>
-//                           </tr>
-//                         ))}
-//                       </tbody>
-//                     </table>
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-//           )}
-//         </main>
-
-//         {/* FOOTER */}
-//         <Footer />
-//       </div>
-
-//       {/* STUDENT DETAIL MODAL */}
-//       {selectedStudent && (
-//         <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-//           {/* Blurred background */}
-//           <div className="absolute inset-0 backdrop-blur-md bg-black/30"></div>
-          
-//           <div className="relative bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-blue-100">
-//             <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 text-white rounded-t-2xl flex justify-between items-center">
-//               <h2 className="text-xl font-bold flex items-center gap-2">
-//                 <FaUserGraduate />
-//                 Student Profile & Attendance Details
-//               </h2>
-//               <button onClick={() => setSelectedStudent(null)} className="text-white text-2xl hover:text-gray-200">×</button>
-//             </div>
-            
-//             <div className="p-6">
-//               <div className="flex flex-col md:flex-row gap-6 mb-6">
-//                 <div className="md:w-1/3 flex flex-col items-center">
-//                   <div className="relative">
-//                     <img
-//                       src={selectedStudent.profilePhoto}
-//                       className="w-48 h-48 rounded-2xl border-4 border-white shadow-lg"
-//                       alt={selectedStudent.name}
-//                     />
-//                     <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
-//                       ID: {selectedStudent.id}
-//                     </div>
-//                   </div>
-//                   <div className="mt-8 text-center">
-//                     <h3 className="text-2xl font-bold text-gray-800">{selectedStudent.name}</h3>
-//                     <p className="text-gray-600">Class {selectedStudent.class}-{selectedStudent.section}</p>
-//                     <div className="mt-3 flex items-center justify-center gap-2">
-//                       <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
-//                         Absent Today
-//                       </span>
-//                       <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-//                         Roll: {selectedStudent.rollNo}
-//                       </span>
-//                     </div>
-//                   </div>
-//                 </div>
-                
-//                 <div className="md:w-2/3">
-//                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//                     <div className="bg-gradient-to-r from-blue-50 to-white p-4 rounded-lg">
-//                       <h4 className="font-semibold text-blue-700 mb-3 flex items-center gap-2">
-//                         <FaIdCard />
-//                         Personal Information
-//                       </h4>
-//                       <div className="space-y-3">
-//                         <div>
-//                           <label className="block text-sm font-medium text-gray-500">Father's Name</label>
-//                           <p className="font-semibold text-gray-800">{selectedStudent.father}</p>
-//                         </div>
-//                         <div>
-//                           <label className="block text-sm font-medium text-gray-500">Mother's Name</label>
-//                           <p className="font-semibold text-gray-800">{selectedStudent.mother}</p>
-//                         </div>
-//                         <div>
-//                           <label className="block text-sm font-medium text-gray-500">Aadhar ID</label>
-//                           <p className="font-semibold text-gray-800">{selectedStudent.aadharId}</p>
-//                         </div>
-//                       </div>
-//                     </div>
-                    
-//                     <div className="bg-gradient-to-r from-blue-50 to-white p-4 rounded-lg">
-//                       <h4 className="font-semibold text-blue-700 mb-3 flex items-center gap-2">
-//                         <FaPhone />
-//                         Contact Information
-//                       </h4>
-//                       <div className="space-y-3">
-//                         <div>
-//                           <label className="block text-sm font-medium text-gray-500">Parent's Phone</label>
-//                           <p className="font-semibold text-gray-800">{selectedStudent.phone}</p>
-//                         </div>
-//                         <div>
-//                           <label className="block text-sm font-medium text-gray-500">Emergency Contact</label>
-//                           <p className="font-semibold text-gray-800">{selectedStudent.emergency}</p>
-//                         </div>
-//                         <div>
-//                           <label className="block text-sm font-medium text-gray-500 flex items-center gap-2">
-//                             <FaHome />
-//                             Address
-//                           </label>
-//                           <p className="font-semibold text-gray-800 text-sm">{selectedStudent.address}</p>
-//                         </div>
-//                       </div>
-//                     </div>
-//                   </div>
-                  
-//                   {/* ATTENDANCE STATS */}
-//                   <div className="mt-6 bg-gradient-to-r from-green-50 to-white p-4 rounded-lg">
-//                     <h4 className="font-semibold text-green-700 mb-3 flex items-center gap-2">
-//                       <FaChartBar />
-//                       Attendance Statistics
-//                     </h4>
-//                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-//                       <div className="text-center">
-//                         <div className="text-2xl font-bold text-green-600">{selectedStudent.attendance.present}</div>
-//                         <div className="text-sm text-gray-600">Days Present</div>
-//                       </div>
-//                       <div className="text-center">
-//                         <div className="text-2xl font-bold text-red-600">{selectedStudent.attendance.absent}</div>
-//                         <div className="text-sm text-gray-600">Days Absent</div>
-//                       </div>
-//                       <div className="text-center">
-//                         <div className="text-2xl font-bold text-yellow-600">{selectedStudent.attendance.sick}</div>
-//                         <div className="text-sm text-gray-600">Days Sick</div>
-//                       </div>
-//                       <div className="text-center">
-//                         <div className="text-2xl font-bold text-blue-600">{selectedStudent.attendance.leave}</div>
-//                         <div className="text-sm text-gray-600">Days Leave</div>
-//                       </div>
-//                     </div>
-//                     <div className="mt-4">
-//                       <div className="flex justify-between text-sm text-gray-600 mb-1">
-//                         <span>Attendance Percentage</span>
-//                         <span>{selectedStudent.attendance.percentage}%</span>
-//                       </div>
-//                       <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-//                         <div 
-//                           className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
-//                           style={{ width: `${selectedStudent.attendance.percentage}%` }}
-//                         />
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </div>
-//               </div>
-              
-//               {/* LEAVE HISTORY */}
-//               <div className="bg-white rounded-lg shadow border border-gray-200">
-//                 <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-//                   <h4 className="font-semibold text-gray-700 flex items-center gap-2">
-//                     <FaHistory />
-//                     Leave History
-//                   </h4>
-//                   <span className="text-sm text-gray-500">Total Leaves: {selectedStudent.leaveHistory.length}</span>
-//                 </div>
-//                 <div className="p-4">
-//                   {selectedStudent.leaveHistory.length > 0 ? (
-//                     <div className="space-y-3">
-//                       {selectedStudent.leaveHistory.map((leave, index) => (
-//                         <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-//                           <div>
-//                             <p className="font-medium text-gray-800">{leave.reason}</p>
-//                             <p className="text-sm text-gray-600">{leave.date}</p>
-//                           </div>
-//                           <span className={`px-3 py-1 text-xs rounded-full ${leave.approved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-//                             {leave.approved ? 'Approved' : 'Pending'}
-//                           </span>
-//                         </div>
-//                       ))}
-//                     </div>
-//                   ) : (
-//                     <p className="text-gray-500 text-center py-4">No leave history available</p>
-//                   )}
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* TEACHER DETAIL MODAL */}
-//       {selectedTeacher && (
-//         <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-//           {/* Blurred background */}
-//           <div className="absolute inset-0 backdrop-blur-md bg-black/30"></div>
-          
-//           <div className="relative bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-purple-100">
-//             <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4 text-white rounded-t-2xl flex justify-between items-center">
-//               <h2 className="text-xl font-bold flex items-center gap-2">
-//                 <FaChalkboardTeacher />
-//                 Teacher Profile & Attendance Details
-//               </h2>
-//               <button onClick={() => setSelectedTeacher(null)} className="text-white text-2xl hover:text-gray-200">×</button>
-//             </div>
-            
-//             <div className="p-6">
-//               <div className="flex flex-col md:flex-row gap-6 mb-6">
-//                 <div className="md:w-1/3 flex flex-col items-center">
-//                   <div className="relative">
-//                     <img
-//                       src={selectedTeacher.profilePhoto}
-//                       className="w-48 h-48 rounded-2xl border-4 border-white shadow-lg"
-//                       alt={selectedTeacher.name}
-//                     />
-//                     <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-medium">
-//                       ID: {selectedTeacher.teacherId}
-//                     </div>
-//                   </div>
-//                   <div className="mt-8 text-center">
-//                     <h3 className="text-2xl font-bold text-gray-800">{selectedTeacher.name}</h3>
-//                     <p className="text-gray-600">{selectedTeacher.department} Department</p>
-//                     <div className="mt-3">
-//                       <span className="px-4 py-2 bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 rounded-full text-sm font-medium flex items-center gap-2 justify-center">
-//                         <FaCalendarTimes />
-//                         ON LEAVE
-//                       </span>
-//                     </div>
-//                   </div>
-//                 </div>
-                
-//                 <div className="md:w-2/3">
-//                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//                     <div className="bg-gradient-to-r from-purple-50 to-white p-4 rounded-lg">
-//                       <h4 className="font-semibold text-purple-700 mb-3 flex items-center gap-2">
-//                         <FaIdCard />
-//                         Professional Information
-//                       </h4>
-//                       <div className="space-y-3">
-//                         <div>
-//                           <label className="block text-sm font-medium text-gray-500">Teacher ID</label>
-//                           <p className="font-semibold text-gray-800">{selectedTeacher.teacherId}</p>
-//                         </div>
-//                         <div>
-//                           <label className="block text-sm font-medium text-gray-500">Department</label>
-//                           <p className="font-semibold text-gray-800">{selectedTeacher.department}</p>
-//                         </div>
-//                         <div>
-//                           <label className="block text-sm font-medium text-gray-500">Subject</label>
-//                           <p className="font-semibold text-gray-800">{selectedTeacher.subject}</p>
-//                         </div>
-//                         <div>
-//                           <label className="block text-sm font-medium text-gray-500">Aadhar ID</label>
-//                           <p className="font-semibold text-gray-800">{selectedTeacher.aadharId}</p>
-//                         </div>
-//                       </div>
-//                     </div>
-                    
-//                     <div className="bg-gradient-to-r from-purple-50 to-white p-4 rounded-lg">
-//                       <h4 className="font-semibold text-purple-700 mb-3 flex items-center gap-2">
-//                         <FaPhone />
-//                         Contact & Leave Info
-//                       </h4>
-//                       <div className="space-y-3">
-//                         <div>
-//                           <label className="block text-sm font-medium text-gray-500">Phone Number</label>
-//                           <p className="font-semibold text-gray-800">{selectedTeacher.phone}</p>
-//                         </div>
-//                         <div>
-//                           <label className="block text-sm font-medium text-gray-500">Emergency Contact</label>
-//                           <p className="font-semibold text-gray-800">{selectedTeacher.emergency}</p>
-//                         </div>
-//                         <div>
-//                           <label className="block text-sm font-medium text-gray-500">Leave Balance</label>
-//                           <p className="text-2xl font-bold text-blue-600">{selectedTeacher.leaveBalance} days</p>
-//                         </div>
-//                         <div>
-//                           <label className="block text-sm font-medium text-gray-500 flex items-center gap-2">
-//                             <FaHome />
-//                             Address
-//                           </label>
-//                           <p className="font-semibold text-gray-800 text-sm">{selectedTeacher.address}</p>
-//                         </div>
-//                       </div>
-//                     </div>
-//                   </div>
-                  
-//                   {/* ATTENDANCE STATS */}
-//                   <div className="mt-6 bg-gradient-to-r from-green-50 to-white p-4 rounded-lg">
-//                     <h4 className="font-semibold text-green-700 mb-3 flex items-center gap-2">
-//                       <FaChartBar />
-//                       Attendance Statistics
-//                     </h4>
-//                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-//                       <div className="text-center">
-//                         <div className="text-2xl font-bold text-green-600">{selectedTeacher.attendance.present}</div>
-//                         <div className="text-sm text-gray-600">Days Present</div>
-//                       </div>
-//                       <div className="text-center">
-//                         <div className="text-2xl font-bold text-red-600">{selectedTeacher.attendance.absent}</div>
-//                         <div className="text-sm text-gray-600">Days Absent</div>
-//                       </div>
-//                       <div className="text-center">
-//                         <div className="text-2xl font-bold text-blue-600">{selectedTeacher.attendance.percentage}%</div>
-//                         <div className="text-sm text-gray-600">Attendance Rate</div>
-//                       </div>
-//                     </div>
-//                     <div className="mt-4">
-//                       <div className="flex justify-between text-sm text-gray-600 mb-1">
-//                         <span>Attendance Percentage</span>
-//                         <span>{selectedTeacher.attendance.percentage}%</span>
-//                       </div>
-//                       <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-//                         <div 
-//                           className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
-//                           style={{ width: `${selectedTeacher.attendance.percentage}%` }}
-//                         />
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </div>
-//               </div>
-              
-//               {/* CURRENT LEAVE & HISTORY */}
-//               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//                 {/* CURRENT LEAVE */}
-//                 <div className="bg-white rounded-lg shadow border border-gray-200">
-//                   <div className="px-4 py-3 bg-orange-50 border-b border-orange-200">
-//                     <h4 className="font-semibold text-orange-700 flex items-center gap-2">
-//                       <FaCalendarTimes />
-//                       Current Leave Status
-//                     </h4>
-//                   </div>
-//                   <div className="p-4">
-//                     {selectedTeacher.currentLeave ? (
-//                       <div className="space-y-3">
-//                         <div>
-//                           <label className="block text-sm font-medium text-gray-500">Leave Type</label>
-//                           <p className="font-semibold text-gray-800">{selectedTeacher.currentLeave.type}</p>
-//                         </div>
-//                         <div>
-//                           <label className="block text-sm font-medium text-gray-500">Reason</label>
-//                           <p className="font-semibold text-gray-800">{selectedTeacher.currentLeave.reason}</p>
-//                         </div>
-//                         <div className="grid grid-cols-2 gap-3">
-//                           <div>
-//                             <label className="block text-sm font-medium text-gray-500">From</label>
-//                             <p className="font-semibold text-gray-800">{selectedTeacher.currentLeave.from}</p>
-//                           </div>
-//                           <div>
-//                             <label className="block text-sm font-medium text-gray-500">To</label>
-//                             <p className="font-semibold text-gray-800">{selectedTeacher.currentLeave.to}</p>
-//                           </div>
-//                         </div>
-//                       </div>
-//                     ) : (
-//                       <p className="text-gray-500 text-center py-4">No current leave</p>
-//                     )}
-//                   </div>
-//                 </div>
-                
-//                 {/* LEAVE HISTORY */}
-//                 <div className="bg-white rounded-lg shadow border border-gray-200">
-//                   <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-//                     <h4 className="font-semibold text-gray-700 flex items-center gap-2">
-//                       <FaHistory />
-//                       Leave History
-//                     </h4>
-//                     <span className="text-sm text-gray-500">Total: {selectedTeacher.leaveHistory.length}</span>
-//                   </div>
-//                   <div className="p-4">
-//                     {selectedTeacher.leaveHistory.length > 0 ? (
-//                       <div className="space-y-3 max-h-48 overflow-y-auto">
-//                         {selectedTeacher.leaveHistory.map((leave, index) => (
-//                           <div key={index} className="p-3 bg-gray-50 rounded-lg">
-//                             <div className="flex justify-between items-start">
-//                               <div>
-//                                 <p className="font-medium text-gray-800">{leave.reason}</p>
-//                                 <p className="text-sm text-gray-600">{leave.date} • {leave.days} days</p>
-//                               </div>
-//                               <span className={`px-2 py-1 text-xs rounded-full ${leave.approved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-//                                 {leave.approved ? 'Approved' : 'Pending'}
-//                               </span>
-//                             </div>
-//                           </div>
-//                         ))}
-//                       </div>
-//                     ) : (
-//                       <p className="text-gray-500 text-center py-4">No leave history available</p>
-//                     )}
-//                   </div>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default AttendanceManagement;
-
 import { useState, useEffect, useRef } from 'react';
 import PrincipalSidebar from "../components/PrincipalSidebar";
 import Header from "../components/Header";
@@ -1604,7 +45,10 @@ const AttendanceManagement = () => {
   const [selectedSection, setSelectedSection] = useState('all');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [showClassDetails, setShowClassDetails] = useState(null);
-  
+  const [attendanceData, setAttendanceData] = useState([]);
+const [loading, setLoading] = useState(true);
+const [totalStudents, setTotalStudents] = useState(0);
+
   // Check URL path to set active tab
   useEffect(() => {
     if (location.pathname.includes('/attendance/staff')) {
@@ -1642,6 +86,31 @@ const AttendanceManagement = () => {
       day: 'numeric'
     });
   };
+useEffect(() => {
+  if (selectedClass === "all" || selectedSection === "all") {
+    setAttendanceData([]);
+    return;
+  }
+
+  const fetchAttendance = async () => {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+
+      const res = await fetch(
+        `/api/attendance?class=${selectedClass}&section=${selectedSection}&date=${today}`
+      );
+
+      const data = await res.json();
+      setAttendanceData(data);
+    } catch (err) {
+      console.error("Attendance fetch error", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchAttendance();
+}, [selectedClass, selectedSection]);
 
   // Classes 1-10 with sections A, B
   const classes = Array.from({ length: 10 }, (_, i) => ({
@@ -1649,6 +118,19 @@ const AttendanceManagement = () => {
     name: `Class ${i + 1}`,
     sections: ['A', 'B']
   }));
+useEffect(() => {
+  const fetchStudentsCount = async () => {
+    try {
+      const res = await fetch("/api/students"); // your existing students API
+      const students = await res.json();
+      setTotalStudents(students.length);
+    } catch (err) {
+      console.error("Student count fetch error", err);
+    }
+  };
+
+  fetchStudentsCount();
+}, []);
 
   // All sections
   const sections = ['A', 'B'];
@@ -1663,236 +145,6 @@ const AttendanceManagement = () => {
     { id: 'computer', name: 'Computer Science', color: 'from-indigo-500 to-indigo-600' },
     { id: 'phyedu', name: 'Physical Education', color: 'from-pink-500 to-pink-600' },
     { id: 'arts', name: 'Arts & Crafts', color: 'from-teal-500 to-teal-600' }
-  ];
-
-  // Enhanced Sample Student Attendance Data with more students
-  const studentAttendanceData = {
-    '1A': { 
-      total: 45, 
-      present: 38, 
-      absent: 3, 
-      sick: 2, 
-      leave: 2, 
-      percentage: 84.4,
-      students: [
-        { id: "STU001", name: "Rahul Sharma", status: "absent", rollNo: "001" },
-        { id: "STU002", name: "Priya Patel", status: "sick", rollNo: "002" },
-        { id: "STU003", name: "Amit Kumar", status: "leave", rollNo: "003" },
-        { id: "STU004", name: "Sneha Singh", status: "absent", rollNo: "004" },
-        { id: "STU005", name: "Raj Verma", status: "sick", rollNo: "005" },
-        { id: "STU006", name: "Meera Nair", status: "absent", rollNo: "006" },
-        { id: "STU007", name: "Vikram Reddy", status: "leave", rollNo: "007" }
-      ]
-    },
-    '1B': { 
-      total: 42, 
-      present: 36, 
-      absent: 2, 
-      sick: 2, 
-      leave: 2, 
-      percentage: 85.7,
-      students: [
-        { id: "STU008", name: "Karan Mehta", status: "sick", rollNo: "001" },
-        { id: "STU009", name: "Neha Gupta", status: "leave", rollNo: "002" },
-        { id: "STU010", name: "Rohit Sharma", status: "absent", rollNo: "003" },
-        { id: "STU011", name: "Pooja Patel", status: "absent", rollNo: "004" },
-        { id: "STU012", name: "Arun Singh", status: "sick", rollNo: "005" }
-      ]
-    },
-    '2A': { 
-      total: 48, 
-      present: 43, 
-      absent: 2, 
-      sick: 1, 
-      leave: 2, 
-      percentage: 89.6,
-      students: [
-        { id: "STU013", name: "Ananya Das", status: "absent", rollNo: "001" },
-        { id: "STU014", name: "Rohan Kapoor", status: "leave", rollNo: "002" },
-        { id: "STU015", name: "Simran Kaur", status: "sick", rollNo: "003" },
-        { id: "STU016", name: "Aditya Rao", status: "absent", rollNo: "004" }
-      ]
-    },
-    '2B': { 
-      total: 46, 
-      present: 41, 
-      absent: 1, 
-      sick: 2, 
-      leave: 2, 
-      percentage: 89.1,
-      students: [
-        { id: "STU017", name: "Nisha Verma", status: "sick", rollNo: "001" },
-        { id: "STU018", name: "Kunal Joshi", status: "leave", rollNo: "002" },
-        { id: "STU019", name: "Tanya Malhotra", status: "absent", rollNo: "003" },
-        { id: "STU020", name: "Varun Chawla", status: "sick", rollNo: "004" }
-      ]
-    },
-    '3A': { 
-      total: 50, 
-      present: 45, 
-      absent: 2, 
-      sick: 1, 
-      leave: 2, 
-      percentage: 90.0,
-      students: [
-        { id: "STU021", name: "Priyanka Sharma", status: "absent", rollNo: "001" },
-        { id: "STU022", name: "Rajesh Nair", status: "leave", rollNo: "002" },
-        { id: "STU023", name: "Sunita Reddy", status: "sick", rollNo: "003" }
-      ]
-    },
-    '3B': { 
-      total: 49, 
-      present: 44, 
-      absent: 2, 
-      sick: 1, 
-      leave: 2, 
-      percentage: 89.8,
-      students: [
-        { id: "STU024", name: "Manoj Kumar", status: "absent", rollNo: "001" },
-        { id: "STU025", name: "Swati Patel", status: "sick", rollNo: "002" },
-        { id: "STU026", name: "Ajay Singh", status: "leave", rollNo: "003" }
-      ]
-    },
-    '4A': { 
-      total: 47, 
-      present: 42, 
-      absent: 2, 
-      sick: 1, 
-      leave: 2, 
-      percentage: 89.4,
-      students: [
-        { id: "STU027", name: "Deepak Mehta", status: "absent", rollNo: "001" },
-        { id: "STU028", name: "Ritu Gupta", status: "leave", rollNo: "002" },
-        { id: "STU029", name: "Alok Verma", status: "sick", rollNo: "003" }
-      ]
-    }
-  };
-
-  // Enhanced Sample Student Details
-  const studentsData = [
-    {
-      id: "STU001",
-      name: "Rahul Sharma",
-      class: "1",
-      section: "A",
-      rollNo: "001",
-      father: "Rajesh Sharma",
-      mother: "Priya Sharma",
-      phone: "9876543210",
-      emergency: "9876543211",
-      aadharId: "1234 5678 9012",
-      address: "Mumbai, Maharashtra",
-      attendance: {
-        present: 95,
-        absent: 3,
-        sick: 1,
-        leave: 1,
-        percentage: 95
-      },
-      leaveHistory: [
-        { date: "2024-01-15", reason: "Medical", approved: true },
-        { date: "2024-02-20", reason: "Family Function", approved: true },
-        { date: "2024-03-10", reason: "Medical", approved: true }
-      ],
-      profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rahul"
-    },
-    {
-      id: "STU002",
-      name: "Priya Patel",
-      class: "1",
-      section: "A",
-      rollNo: "002",
-      father: "Amit Patel",
-      mother: "Neha Patel",
-      phone: "9876543212",
-      emergency: "9876543213",
-      aadharId: "2345 6789 0123",
-      address: "Ahmedabad, Gujarat",
-      attendance: {
-        present: 98,
-        absent: 1,
-        sick: 0,
-        leave: 1,
-        percentage: 98
-      },
-      leaveHistory: [
-        { date: "2024-02-05", reason: "Personal", approved: true }
-      ],
-      profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Priya"
-    },
-    {
-      id: "STU003",
-      name: "Amit Kumar",
-      class: "1",
-      section: "A",
-      rollNo: "003",
-      father: "Sanjay Kumar",
-      mother: "Rekha Kumar",
-      phone: "9876543214",
-      emergency: "9876543215",
-      aadharId: "3456 7890 1234",
-      address: "Delhi, NCR",
-      attendance: {
-        present: 90,
-        absent: 5,
-        sick: 3,
-        leave: 2,
-        percentage: 90
-      },
-      leaveHistory: [
-        { date: "2024-01-20", reason: "Medical", approved: true },
-        { date: "2024-03-15", reason: "Family Emergency", approved: true }
-      ],
-      profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Amit"
-    },
-    {
-      id: "STU008",
-      name: "Karan Mehta",
-      class: "1",
-      section: "B",
-      rollNo: "001",
-      father: "Ravi Mehta",
-      mother: "Sunita Mehta",
-      phone: "9876543220",
-      emergency: "9876543221",
-      aadharId: "4567 8901 2345",
-      address: "Bangalore, Karnataka",
-      attendance: {
-        present: 92,
-        absent: 4,
-        sick: 2,
-        leave: 2,
-        percentage: 92
-      },
-      leaveHistory: [
-        { date: "2024-02-10", reason: "Medical", approved: true }
-      ],
-      profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Karan"
-    },
-    {
-      id: "STU013",
-      name: "Ananya Das",
-      class: "2",
-      section: "A",
-      rollNo: "001",
-      father: "Suresh Das",
-      mother: "Mala Das",
-      phone: "9876543230",
-      emergency: "9876543231",
-      aadharId: "5678 9012 3456",
-      address: "Kolkata, West Bengal",
-      attendance: {
-        present: 96,
-        absent: 2,
-        sick: 1,
-        leave: 1,
-        percentage: 96
-      },
-      leaveHistory: [
-        { date: "2024-01-25", reason: "Medical", approved: true }
-      ],
-      profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Ananya"
-    }
   ];
 
   // Enhanced Sample Teacher Attendance Data
@@ -2110,37 +362,58 @@ const AttendanceManagement = () => {
       profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Lata"
     }
   ];
+ const classWiseData = attendanceData.reduce((acc, a) => {
+  const key = `${a.class}${a.section}`;
 
-  // Filter data based on selections
-  const filteredStudentData = selectedClass === 'all' 
-    ? studentAttendanceData 
-    : Object.keys(studentAttendanceData).reduce((acc, key) => {
-        if (selectedSection === 'all') {
-          if (key.startsWith(selectedClass)) {
-            acc[key] = studentAttendanceData[key];
-          }
-        } else {
-          if (key === `${selectedClass}${selectedSection}`) {
-            acc[key] = studentAttendanceData[key];
-          }
-        }
-        return acc;
-      }, {});
+  if (!acc[key]) {
+    acc[key] = {
+      total: 0,
+      present: 0,
+      absent: 0,
+      sick: 0,
+      leave: 0,
+      percentage: 0,
+      students: []
+    };
+  }
 
-  const filteredTeacherData = selectedDepartment === 'all'
-    ? teacherAttendanceData
-    : { [selectedDepartment]: teacherAttendanceData[selectedDepartment] };
+  acc[key].total += 1;
+  acc[key].students.push({
+    id: a.studentId?._id,
+    name: a.studentId?.basicInfo?.fullName,
+    rollNo: a.roll,
+    status: a.status.toLowerCase()
+  });
+const studentAttendanceData = classWiseData;
+
+  if (a.status === "Present") acc[key].present += 1;
+  if (a.status === "Absent") acc[key].absent += 1;
+  if (a.status === "Sick") acc[key].sick += 1;
+  if (a.status === "Leave") acc[key].leave += 1;
+
+  acc[key].percentage =
+    acc[key].total > 0
+      ? Math.round((acc[key].present / acc[key].total) * 100)
+      : 0;
+
+  return acc;
+}, {});
 
   // Calculate overall statistics
-  const overallStudentStats = Object.values(studentAttendanceData).reduce((acc, curr) => ({
-    total: acc.total + curr.total,
-    present: acc.present + curr.present,
-    absent: acc.absent + curr.absent,
-    sick: acc.sick + curr.sick,
-    leave: acc.leave + curr.leave
-  }), { total: 0, present: 0, absent: 0, sick: 0, leave: 0 });
+const overallStudentStats = attendanceData.reduce(
+  (acc, a) => {
+    acc.total += 1;
+    if (a.status === "Present") acc.present += 1;
+    if (a.status === "Absent") acc.absent += 1;
+    if (a.status === "Sick") acc.sick += 1;
+    if (a.status === "Leave") acc.leave += 1;
+    return acc;
+  },
+  { total: 0, present: 0, absent: 0, sick: 0, leave: 0 }
+);
 
-  overallStudentStats.percentage = overallStudentStats.total > 0 
+overallStudentStats.percentage =
+  overallStudentStats.total > 0
     ? ((overallStudentStats.present / overallStudentStats.total) * 100).toFixed(1)
     : 0;
 
@@ -2187,7 +460,8 @@ const AttendanceManagement = () => {
     }
   };
 
-  // Export to Excel function
+
+// Export to Excel function
   const exportToExcel = () => {
     const data = [];
     
@@ -2265,6 +539,18 @@ const AttendanceManagement = () => {
     
     XLSX.writeFile(wb, fileName);
   };
+const studentsData = attendanceData.map(a => ({
+  id: a.studentId?._id,
+  name: a.studentId?.basicInfo?.fullName,
+  class: a.class,
+  section: a.section,
+  rollNo: a.roll,
+  phone: a.studentId?.contactInfo?.phoneNumber,
+  emergency: a.studentId?.contactInfo?.emergencyContact,
+  father: a.studentId?.basicInfo?.fatherName,
+  mother: a.studentId?.basicInfo?.motherName,
+  address: a.studentId?.contactInfo?.address
+}));
 
   // Export to PDF function
   const exportToPDF = () => {
@@ -2680,7 +966,7 @@ const AttendanceManagement = () => {
                   </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {Object.entries(filteredStudentData).map(([className, data]) => (
+                  {Object.entries(classWiseData).map(([className, data]) => (
                     <div key={className} className="bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-blue-200">
                       <div className="flex justify-between items-start mb-4">
                         <div>
@@ -2847,8 +1133,25 @@ const AttendanceManagement = () => {
                                   <td className="px-6 py-4">
                                     <button 
                                       onClick={() => {
-                                        const foundStudent = studentsData.find(s => s.id === student.id);
-                                        if (foundStudent) setSelectedStudent(foundStudent);
+const foundStudent = attendanceData.find(a => a.studentId?._id === student.id)?.studentId;
+                                       if (foundStudent)setSelectedStudent({
+  id: foundStudent._id,
+  name: foundStudent.basicInfo.fullName,
+  class: student.class,
+  section: student.section,
+  rollNo: student.rollNo,
+  phone: foundStudent.contactInfo.phoneNumber,
+  emergency: foundStudent.contactInfo.emergencyContact,
+  father: foundStudent.basicInfo.fatherName,
+  mother: foundStudent.basicInfo.motherName,
+  aadharId: foundStudent.basicInfo.aadharNumber,
+  address: foundStudent.contactInfo.address,
+  profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + student.rollNo,
+  attendance: { present: 0, absent: 0, sick: 0, leave: 0, percentage: 0 },
+  leaveHistory: []
+});
+
+
                                       }}
                                       className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                                     >
@@ -2902,7 +1205,20 @@ const AttendanceManagement = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
-                        {studentsData.map((student) => (
+                       {  attendanceData
+  .filter(a => a.status !== "Present")
+  .map(a => ({
+    id: a.studentId?._id,
+    name: a.studentId?.basicInfo?.fullName,
+    class: a.class,
+    section: a.section,
+    rollNo: a.roll,
+    phone: a.studentId?.contactInfo?.phoneNumber,
+    emergency: a.studentId?.contactInfo?.emergencyContact,
+    profilePhoto: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + a.roll
+  }))
+  .map((student) => (
+
                           <tr key={student.id} className="hover:bg-gray-50 transition-colors">
                             <td className="px-6 py-4">
                               <div className="flex items-center">
@@ -2919,9 +1235,14 @@ const AttendanceManagement = () => {
                               </span>
                             </td>
                             <td className="px-6 py-4">
-                              <span className="px-4 py-2 bg-red-100 text-red-800 rounded-full text-sm font-medium">
-                                Absent
-                              </span>
+                              <span className={`px-4 py-2 rounded-full text-sm font-medium ${
+  a.status === "Absent" ? "bg-red-100 text-red-800" :
+  a.status === "Sick" ? "bg-yellow-100 text-yellow-800" :
+  "bg-blue-100 text-blue-800"
+}`}>
+  {a.status}
+</span>
+
                             </td>
                             <td className="px-6 py-4">
                               <div>
@@ -3111,13 +1432,14 @@ const AttendanceManagement = () => {
               <div className="mb-8">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Department-wise Attendance</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {Object.entries(filteredTeacherData).map(([deptId, data]) => {
-                    const dept = departments.find(d => d.id === deptId);
+                  {departments.map((department) => {
+                    const data = teacherAttendanceData[department.id];
+                  
                     return (
-                      <div key={deptId} className="bg-gradient-to-br from-white to-purple-50 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-purple-200">
+                      <div key={department.id} className="bg-gradient-to-br from-white to-purple-50 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-purple-200">
                         <div className="flex justify-between items-start mb-4">
                           <div>
-                            <h3 className="font-bold text-gray-800 text-xl">{dept?.name}</h3>
+                            <h3 className="font-bold text-gray-800 text-xl">{department?.name}</h3>
                             <p className="text-sm text-gray-600">Total: {data.total} teachers</p>
                           </div>
                           <div className={`px-4 py-2 rounded-lg ${data.percentage >= 90 ? 'bg-green-100 text-green-800' : data.percentage >= 80 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
@@ -3151,7 +1473,7 @@ const AttendanceManagement = () => {
                         
                         <button 
                           onClick={() => {
-                            setSelectedDepartment(deptId);
+                            setSelectedDepartment(dept.id);
                           }}
                           className="w-full mt-4 py-3 text-sm font-medium bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg"
                         >

@@ -12,9 +12,9 @@ import {
 // Import Header and Footer from components
 import Header from '../components/Header'; // Adjust path as needed
 import Footer from '../components/Footer'; // Adjust path as needed
-
+import BackButton from '../components/BackButton';
 const StaffManagement = () => {
-  const [activeTab, setActiveTab] = useState('create');
+  const [activeTab, setActiveTab] = useState('manage');
   const [formData, setFormData] = useState({
     fullName: '',
     fatherName: '',

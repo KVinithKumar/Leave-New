@@ -25,128 +25,9 @@ import {
 } from "react-icons/fa";
 
 export default function Students() {
-  // ================= INITIAL STUDENT DATA =================
-  const initialStudentsData = [
-    // CLASS 10
-    { 
-      id: 1, 
-      name: "Ravi Kumar", 
-      roll: "101", 
-      class: "10", 
-      section: "A", 
-      gender: "Male", 
-      phone: "9876543210", 
-      email: "ravi.kumar@example.com", 
-      address: "Hyderabad", 
-      attendance: "95%", 
-      dob: "2007-05-15", 
-      fatherName: "Raj Kumar", 
-      motherName: "Sunita Kumar",
-      fathermobile: "9876543211",
-      motheroccupation: "Teacher",
-      fatheroccupation: "Engineer",
-      fatheraadhar: "123456789012",
-      motheraadhar: "234567890123",
-      roomno: "101",
-      daysschoolarhostel: "schoolar"
-    },
-    { 
-      id: 2, 
-      name: "Anjali Sharma", 
-      roll: "102", 
-      class: "10", 
-      section: "A", 
-      gender: "Female", 
-      phone: "9123456780", 
-      email: "anjali.sharma@example.com", 
-      address: "Delhi", 
-      attendance: "98%", 
-      dob: "2007-08-22", 
-      fatherName: "Amit Sharma", 
-      motherName: "Priya Sharma",
-      fathermobile: "9123456781",
-      motheroccupation: "Doctor",
-      fatheroccupation: "Business",
-      fatheraadhar: "345678901234",
-      motheraadhar: "456789012345",
-      roomno: "",
-      daysschoolarhostel: "hostel"
-    },
-    { 
-      id: 3, 
-      name: "Suresh Reddy", 
-      roll: "103", 
-      class: "10", 
-      section: "A", 
-      gender: "Male", 
-      phone: "9988776655", 
-      email: "suresh.reddy@example.com", 
-      address: "Warangal", 
-      attendance: "92%", 
-      dob: "2007-03-10", 
-      fatherName: "Venkat Reddy", 
-      motherName: "Lakshmi Reddy",
-      fathermobile: "9988776656",
-      motheroccupation: "Housewife",
-      fatheroccupation: "Farmer",
-      fatheraadhar: "567890123456",
-      motheraadhar: "678901234567",
-      roomno: "",
-      daysschoolarhostel: "schoolar"
-    },
-    // CLASS 9
-    { 
-      id: 4, 
-      name: "Kavya Nair", 
-      roll: "201", 
-      class: "9", 
-      section: "A", 
-      gender: "Female", 
-      phone: "9090909090", 
-      email: "kavya.nair@example.com", 
-      address: "Kochi", 
-      attendance: "97%", 
-      dob: "2008-01-30", 
-      fatherName: "Rajesh Nair", 
-      motherName: "Meera Nair",
-      fathermobile: "9090909091",
-      motheroccupation: "Nurse",
-      fatheroccupation: "Teacher",
-      fatheraadhar: "789012345678",
-      motheraadhar: "890123456789",
-      roomno: "205",
-      daysschoolarhostel: "hostel"
-    },
-    // CLASS 8
-    { 
-      id: 5, 
-      name: "Meena Joshi", 
-      roll: "301", 
-      class: "8", 
-      section: "A", 
-      gender: "Female", 
-      phone: "9000012345", 
-      email: "meena.joshi@example.com", 
-      address: "Pune", 
-      attendance: "93%", 
-      dob: "2009-07-18", 
-      fatherName: "Sanjay Joshi", 
-      motherName: "Anita Joshi",
-      fathermobile: "9000012346",
-      motheroccupation: "Accountant",
-      fatheroccupation: "Government Employee",
-      fatheraadhar: "901234567890",
-      motheraadhar: "012345678901",
-      roomno: "",
-      daysschoolarhostel: "schoolar"
-    },
-  ];
 
-  // ================= STATES =================
-  const [studentsData, setStudentsData] = useState(() => {
-    const saved = localStorage.getItem("studentManagementData");
-    return saved ? JSON.parse(saved) : initialStudentsData;
-  });
+
+
   
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
@@ -157,6 +38,7 @@ export default function Students() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+const [studentsData, setStudentsData] = useState([]);
 
   // ================= FORM STATES =================
   const [formData, setFormData] = useState({
@@ -182,10 +64,6 @@ export default function Students() {
   });
 
   // ================= 
-  // TO LOCAL STORAGE =================
-  useEffect(() => {
-    localStorage.setItem("studentManagementData", JSON.stringify(studentsData));
-  }, [studentsData]);
 
   // ================= DYNAMIC COLORS =================
   const getClassColor = (className) => {
@@ -212,30 +90,38 @@ export default function Students() {
   };
 
   // ================= HANDLERS =================
-  const handleSearch = () => {
-    let result = studentsData.filter((student) => {
-      const matchesClass = !selectedClass || student.class === selectedClass;
-      const matchesSection = !selectedSection || student.section === selectedSection;
-      const matchesSearch = !searchText || 
-        student.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        student.roll.includes(searchText) ||
-        student.email.toLowerCase().includes(searchText.toLowerCase());
-      
-      return matchesClass && matchesSection && matchesSearch;
-    });
+const handleSearch = () => {
+  const text = searchText.toLowerCase();
 
-    // Sort by roll number by default
-    result = [...result].sort((a, b) => a.roll.localeCompare(b.roll));
+  let result = studentsData.filter((student) => {
+    const matchesClass =
+      !selectedClass || String(student.class) === String(selectedClass);
 
-    setFilteredStudents(result);
-  };
+    const matchesSection =
+      !selectedSection || student.section === selectedSection;
 
-  const handleReset = () => {
-    setSelectedClass("");
-    setSelectedSection("");
-    setSearchText("");
-    setFilteredStudents(studentsData);
-  };
+    const matchesSearch =
+      !text ||
+      (student.name && student.name.toLowerCase().includes(text)) ||
+      (student.roll && String(student.roll).includes(text)) ||
+      (student.email && student.email.toLowerCase().includes(text));
+
+    return matchesClass && matchesSection && matchesSearch;
+  });
+
+  // ✅ correct numeric sorting
+  result.sort((a, b) => Number(a.roll) - Number(b.roll));
+
+  setFilteredStudents(result);
+};
+
+
+const handleReset = () => {
+  setSelectedClass("");
+  setSelectedSection("");
+  setSearchText("");
+};
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -245,33 +131,27 @@ export default function Students() {
     });
   };
 
-  const handleAddStudent = () => {
-    if (!formData.name || !formData.roll || !formData.class || !formData.section) {
-      alert("Please fill in all required fields");
+  const handleAddStudent = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/students", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      alert(err.message || "Add failed");
       return;
     }
 
-    // Check if roll number already exists in the same class
-    const existingStudent = studentsData.find(
-      student => student.roll === formData.roll && student.class === formData.class
-    );
-    
-    if (existingStudent) {
-      alert("Roll number already exists in this class!");
-      return;
-    }
-
-    const newStudent = {
-      id: Date.now(),
-      ...formData,
-      attendance: formData.attendance + "%"
-    };
-
-    setStudentsData([...studentsData, newStudent]);
+    await fetchStudents();
     setIsAddModalOpen(false);
     resetForm();
-    handleSearch();
-  };
+  } catch (err) {
+    alert("Server error while adding student");
+  }
+};
 
   const handleEditStudent = (student) => {
     setEditingStudent(student);
@@ -299,52 +179,46 @@ export default function Students() {
     setIsEditModalOpen(true);
   };
 
-  const handleUpdateStudent = () => {
-    if (!formData.name || !formData.roll || !formData.class || !formData.section) {
-      alert("Please fill in all required fields");
-      return;
-    }
-
-    // Check if roll number conflicts with other students
-    const rollConflict = studentsData.find(
-      student => 
-        student.id !== editingStudent.id &&
-        student.roll === formData.roll && 
-        student.class === formData.class
-    );
-    
-    if (rollConflict) {
-      alert("Roll number already exists in this class!");
-      return;
-    }
-
-    const updatedStudents = studentsData.map(student => {
-      if (student.id === editingStudent.id) {
-        return {
-          ...student,
-          ...formData,
-          attendance: formData.attendance + "%"
-        };
+  const handleUpdateStudent = async () => {
+  try {
+    const res = await fetch(
+      `http://localhost:5000/api/students/${editingStudent._id}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       }
-      return student;
-    });
+    );
 
-    setStudentsData(updatedStudents);
+    if (!res.ok) {
+      const err = await res.json();
+      alert(err.message || "Update failed");
+      return;
+    }
+
+    await fetchStudents();
     setIsEditModalOpen(false);
     setEditingStudent(null);
     resetForm();
-    handleSearch();
-  };
+  } catch {
+    alert("Server error while updating");
+  }
+};
 
-  const handleDeleteStudent = (id) => {
-    const updatedStudents = studentsData.filter(student => student.id !== id);
-    setStudentsData(updatedStudents);
+
+const handleDeleteStudent = async (id) => {
+  try {
+    await fetch(`http://localhost:5000/api/students/${id}`, {
+      method: "DELETE",
+    });
+
+    await fetchStudents();
     setDeleteConfirm(null);
-    if (selectedStudent && selectedStudent.id === id) {
-      setSelectedStudent(null);
-    }
-    handleSearch();
-  };
+  } catch {
+    alert("Delete failed");
+  }
+};
+
 
   const resetForm = () => {
     setFormData({
@@ -369,6 +243,32 @@ export default function Students() {
       daysschoolarhostel: "schoolar"
     });
   };
+  useEffect(() => {
+  handleSearch();
+}, [searchText, selectedClass, selectedSection, studentsData]);
+
+const fetchStudents = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/students");
+    const data = await res.json();
+
+    const normalized = data.map(s => ({
+      ...s,
+      attendance: typeof s.attendance === "string"
+        ? s.attendance
+        : `${s.attendance}%`,
+    }));
+
+    setStudentsData(normalized);
+    setFilteredStudents(normalized);
+  } catch (err) {
+    console.error("Failed to fetch students", err);
+  }
+};
+
+useEffect(() => {
+  fetchStudents();
+}, []);
 
   const handleExport = () => {
     const dataToExport = filteredStudents.length > 0 ? filteredStudents : studentsData;
@@ -419,10 +319,7 @@ export default function Students() {
   const dayScholarStudents = studentsData.filter(s => s.daysschoolarhostel === "schoolar").length;
 
   // Initial load - show all students
-  useEffect(() => {
-    handleSearch();
-  }, [studentsData]);
-
+  
   return (
     <div className="p-6 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Header */}
@@ -534,7 +431,10 @@ export default function Students() {
                 placeholder="Search by name, roll or email..."
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                onKeyDown={(e) => {
+  if (e.key === "Enter") handleSearch();
+}}
+
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
               />
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -594,7 +494,7 @@ export default function Students() {
                 <tbody>
                   {filteredStudents.map((student) => (
                     <tr 
-                      key={student.id}
+                      key={student._id}
                       className="border-b border-gray-100 hover:bg-blue-50 transition"
                     >
                       <td className="py-4 px-6">
@@ -1547,7 +1447,7 @@ export default function Students() {
                   Cancel
                 </button>
                 <button
-                  onClick={() => handleDeleteStudent(deleteConfirm.id)}
+                  onClick={() => handleDeleteStudent(deleteConfirm._id)}
                   className="px-6 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition"
                 >
                   Delete Student

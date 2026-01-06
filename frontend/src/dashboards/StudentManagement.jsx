@@ -26,128 +26,7 @@ import {
 } from "react-icons/fa";
 
 export default function Students() {
-  // ================= INITIAL STUDENT DATA =================
-  const initialStudentsData = [
-    // CLASS 10
-    { 
-      id: 1, 
-      name: "Ravi Kumar", 
-      roll: "101", 
-      class: "10", 
-      section: "A", 
-      gender: "Male", 
-      phone: "9876543210", 
-      email: "ravi.kumar@example.com", 
-      address: "Hyderabad", 
-      attendance: "95%", 
-      dob: "2007-05-15", 
-      fatherName: "Raj Kumar", 
-      motherName: "Sunita Kumar",
-      fathermobile: "9876543211",
-      motheroccupation: "Teacher",
-      fatheroccupation: "Engineer",
-      fatheraadhar: "123456789012",
-      motheraadhar: "234567890123",
-      roomno: "101",
-      daysschoolarhostel: "schoolar"
-    },
-    { 
-      id: 2, 
-      name: "Anjali Sharma", 
-      roll: "102", 
-      class: "10", 
-      section: "A", 
-      gender: "Female", 
-      phone: "9123456780", 
-      email: "anjali.sharma@example.com", 
-      address: "Delhi", 
-      attendance: "98%", 
-      dob: "2007-08-22", 
-      fatherName: "Amit Sharma", 
-      motherName: "Priya Sharma",
-      fathermobile: "9123456781",
-      motheroccupation: "Doctor",
-      fatheroccupation: "Business",
-      fatheraadhar: "345678901234",
-      motheraadhar: "456789012345",
-      roomno: "",
-      daysschoolarhostel: "hostel"
-    },
-    { 
-      id: 3, 
-      name: "Suresh Reddy", 
-      roll: "103", 
-      class: "10", 
-      section: "A", 
-      gender: "Male", 
-      phone: "9988776655", 
-      email: "suresh.reddy@example.com", 
-      address: "Warangal", 
-      attendance: "92%", 
-      dob: "2007-03-10", 
-      fatherName: "Venkat Reddy", 
-      motherName: "Lakshmi Reddy",
-      fathermobile: "9988776656",
-      motheroccupation: "Housewife",
-      fatheroccupation: "Farmer",
-      fatheraadhar: "567890123456",
-      motheraadhar: "678901234567",
-      roomno: "",
-      daysschoolarhostel: "schoolar"
-    },
-    // CLASS 9
-    { 
-      id: 4, 
-      name: "Kavya Nair", 
-      roll: "201", 
-      class: "9", 
-      section: "A", 
-      gender: "Female", 
-      phone: "9090909090", 
-      email: "kavya.nair@example.com", 
-      address: "Kochi", 
-      attendance: "97%", 
-      dob: "2008-01-30", 
-      fatherName: "Rajesh Nair", 
-      motherName: "Meera Nair",
-      fathermobile: "9090909091",
-      motheroccupation: "Nurse",
-      fatheroccupation: "Teacher",
-      fatheraadhar: "789012345678",
-      motheraadhar: "890123456789",
-      roomno: "205",
-      daysschoolarhostel: "hostel"
-    },
-    // CLASS 8
-    { 
-      id: 5, 
-      name: "Meena Joshi", 
-      roll: "301", 
-      class: "8", 
-      section: "A", 
-      gender: "Female", 
-      phone: "9000012345", 
-      email: "meena.joshi@example.com", 
-      address: "Pune", 
-      attendance: "93%", 
-      dob: "2009-07-18", 
-      fatherName: "Sanjay Joshi", 
-      motherName: "Anita Joshi",
-      fathermobile: "9000012346",
-      motheroccupation: "Accountant",
-      fatheroccupation: "Government Employee",
-      fatheraadhar: "901234567890",
-      motheraadhar: "012345678901",
-      roomno: "",
-      daysschoolarhostel: "schoolar"
-    },
-  ];
-
-  // ================= STATES =================
-  const [studentsData, setStudentsData] = useState(() => {
-    const saved = localStorage.getItem("studentManagementData");
-    return saved ? JSON.parse(saved) : initialStudentsData;
-  });
+ 
   
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
@@ -158,6 +37,7 @@ export default function Students() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [studentsData, setStudentsData] = useState([]);
 
   // ================= FORM STATES =================
   const [formData, setFormData] = useState({
@@ -182,10 +62,6 @@ export default function Students() {
     daysschoolarhostel: "schoolar"
   });
 
-  // ================= SAVE TO LOCAL STORAGE =================
-  useEffect(() => {
-    localStorage.setItem("studentManagementData", JSON.stringify(studentsData));
-  }, [studentsData]);
 
   // ================= DYNAMIC COLORS =================
   const getClassColor = (className) => {
@@ -210,6 +86,20 @@ export default function Students() {
   const getStudentTypeColor = (type) => {
     return type === "hostel" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700";
   };
+//============FEtching Routes ==================
+const fetchStudents = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/students");
+    const data = await res.json();
+    setStudentsData(data);
+    setFilteredStudents(data);
+  } catch (err) {
+    console.error("Fetch students failed", err);
+  }
+};
+useEffect(() => {
+  fetchStudents();
+}, []);
 
   // ================= HANDLERS =================
   const handleSearch = () => {
@@ -245,33 +135,49 @@ export default function Students() {
     });
   };
 
-  const handleAddStudent = () => {
-    if (!formData.name || !formData.roll || !formData.class || !formData.section) {
-      alert("Please fill in all required fields");
-      return;
-    }
+ const handleAddStudent = async () => {
+  console.log("ADD STUDENT CLICKED", formData);
 
-    // Check if roll number already exists in the same class
-    const existingStudent = studentsData.find(
-      student => student.roll === formData.roll && student.class === formData.class
-    );
-    
-    if (existingStudent) {
-      alert("Roll number already exists in this class!");
-      return;
-    }
+  if (
+  !formData.name ||
+  !formData.roll ||
+  !formData.class ||
+  !formData.section ||
+  !formData.phone ||
+  !formData.address ||
+  !formData.fatherName ||
+  !formData.motherName ||
+  !formData.fathermobile
+) {
+  alert("Please fill all required fields");
+  return;
+}
 
-    const newStudent = {
-      id: Date.now(),
-      ...formData,
-      attendance: formData.attendance + "%"
-    };
+if (
+  !/^\d{10}$/.test(formData.phone) ||
+  !/^\d{10}$/.test(formData.fathermobile)
+) {
+  alert("Phone numbers must be exactly 10 digits");
+  return;
+}
 
-    setStudentsData([...studentsData, newStudent]);
+  try {
+    const res = await fetch("http://localhost:5000/api/students", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    if (!res.ok) throw new Error("Add failed");
+
+    await fetchStudents();
     setIsAddModalOpen(false);
     resetForm();
-    handleSearch();
-  };
+  } catch (err) {
+    alert("Failed to add student");
+  }
+};
+
 
   const handleEditStudent = (student) => {
     setEditingStudent(student);
@@ -299,52 +205,42 @@ export default function Students() {
     setIsEditModalOpen(true);
   };
 
-  const handleUpdateStudent = () => {
-    if (!formData.name || !formData.roll || !formData.class || !formData.section) {
-      alert("Please fill in all required fields");
-      return;
-    }
-
-    // Check if roll number conflicts with other students
-    const rollConflict = studentsData.find(
-      student => 
-        student.id !== editingStudent.id &&
-        student.roll === formData.roll && 
-        student.class === formData.class
-    );
-    
-    if (rollConflict) {
-      alert("Roll number already exists in this class!");
-      return;
-    }
-
-    const updatedStudents = studentsData.map(student => {
-      if (student.id === editingStudent.id) {
-        return {
-          ...student,
-          ...formData,
-          attendance: formData.attendance + "%"
-        };
+ const handleUpdateStudent = async () => {
+  try {
+    const res = await fetch(
+      `http://localhost:5000/api/students/${editingStudent._id}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       }
-      return student;
-    });
+    );
 
-    setStudentsData(updatedStudents);
+    if (!res.ok) throw new Error("Update failed");
+
+    await fetchStudents();
     setIsEditModalOpen(false);
     setEditingStudent(null);
     resetForm();
-    handleSearch();
-  };
+  } catch {
+    alert("Update failed");
+  }
+};
 
-  const handleDeleteStudent = (id) => {
-    const updatedStudents = studentsData.filter(student => student.id !== id);
-    setStudentsData(updatedStudents);
+
+ const handleDeleteStudent = async (id) => {
+  try {
+    await fetch(`http://localhost:5000/api/students/${id}`, {
+      method: "DELETE",
+    });
+
+    await fetchStudents();
     setDeleteConfirm(null);
-    if (selectedStudent && selectedStudent.id === id) {
-      setSelectedStudent(null);
-    }
-    handleSearch();
-  };
+  } catch {
+    alert("Delete failed");
+  }
+};
+
 
   const resetForm = () => {
     setFormData({
@@ -419,9 +315,11 @@ export default function Students() {
   const dayScholarStudents = studentsData.filter(s => s.daysschoolarhostel === "schoolar").length;
 
   // Initial load - show all students
-  useEffect(() => {
-    handleSearch();
-  }, [studentsData]);
+useEffect(() => {
+  if (studentsData.length > 0) {
+    setFilteredStudents(studentsData);
+  }
+}, [studentsData]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-blue-50">
@@ -594,7 +492,7 @@ export default function Students() {
                   <tbody>
                     {filteredStudents.map((student) => (
                       <tr 
-                        key={student.id}
+                        key={student._id}
                         className="border-b border-gray-100 hover:bg-blue-50 transition"
                       >
                         <td className="py-4 px-6">
@@ -1005,11 +903,13 @@ export default function Students() {
                     Cancel
                   </button>
                   <button
-                    onClick={handleAddStudent}
-                    className="px-6 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition"
-                  >
-                    Add Student
-                  </button>
+  type="button"
+  onClick={handleAddStudent}
+  className="px-6 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg"
+>
+  Add Student
+</button>
+
                 </div>
               </div>
             </div>
@@ -1319,12 +1219,14 @@ export default function Students() {
                   >
                     Cancel
                   </button>
-                  <button
-                    onClick={handleUpdateStudent}
-                    className="px-6 py-2 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-lg hover:from-yellow-700 hover:to-yellow-800 transition"
-                  >
-                    Update Student
-                  </button>
+                 <button
+  type="button"
+  onClick={handleUpdateStudent}
+  className="px-6 py-2 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-lg"
+>
+  Update Student
+</button>
+
                 </div>
               </div>
             </div>
@@ -1547,7 +1449,7 @@ export default function Students() {
                     Cancel
                   </button>
                   <button
-                    onClick={() => handleDeleteStudent(deleteConfirm.id)}
+                    onClick={() => handleDeleteStudent(deleteConfirm._id)}
                     className="px-6 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition"
                   >
                     Delete Student

@@ -22,29 +22,17 @@ import {
 } from "react-icons/fa";
 
 export default function Attendance() {
-  // ================= STUDENT DATA =================
-  const studentsData = [
-    { id: 1, name: "Ravi Kumar", roll: "101", class: "10", section: "A", photo: "RK" },
-    { id: 2, name: "Anjali Sharma", roll: "102", class: "10", section: "A", photo: "AS" },
-    { id: 3, name: "Suresh Reddy", roll: "103", class: "10", section: "A", photo: "SR" },
-    { id: 4, name: "Arjun Patel", roll: "104", class: "10", section: "B", photo: "AP" },
-    { id: 5, name: "Pooja Singh", roll: "105", class: "9", section: "A", photo: "PS" },
-    { id: 6, name: "Rahul Das", roll: "106", class: "9", section: "A", photo: "RD" },
-    { id: 7, name: "Kavya Nair", roll: "107", class: "9", section: "B", photo: "KN" },
-    { id: 8, name: "Vikram Rao", roll: "108", class: "10", section: "B", photo: "VR" },
-  ];
+  
 
   // ================= STATES =================
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
-  const [searchText, setSearchText] = useState("");
-  const [filteredStudents, setFilteredStudents] = useState([]);
-  const [attendance, setAttendance] = useState({});
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showSummary, setShowSummary] = useState(true);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [showPercentageCard, setShowPercentageCard] = useState(false);
+const [attendanceRows, setAttendanceRows] = useState([]);
+const filteredStudents = attendanceRows;
 
   // ================= DYNAMIC COLORS =================
   const getStatusColor = (status) => {
@@ -81,141 +69,109 @@ export default function Attendance() {
   };
 
   // ================= SEARCH =================
-  const handleSearch = () => {
-    const result = studentsData.filter((s) => {
-      return (
-        s.class === selectedClass &&
-        s.section === selectedSection &&
-        (searchText === "" ||
-          s.name.toLowerCase().includes(searchText.toLowerCase()) ||
-          s.roll.includes(searchText))
-      );
-    });
+ const handleSearch = async () => {
+  if (!selectedClass || !selectedSection) return;
 
-    setFilteredStudents(result);
+  try {
+    const res = await fetch(
+      `/api/attendance?class=${selectedClass}&section=${selectedSection}&date=${selectedDate}`
+    );
+    const data = await res.json();
+
+    setAttendanceRows(data);
     setIsSubmitted(false);
     setShowPercentageCard(false);
-    // Initialize attendance status for new search
-    const initialAttendance = {};
-    result.forEach(student => {
-      initialAttendance[student.id] = attendance[student.id] || "Not Marked";
-    });
-    setAttendance(initialAttendance);
-  };
 
-  // ================= MARK ATTENDANCE =================
-  const markAttendance = (studentId, status) => {
-    setAttendance((prev) => ({
-      ...prev,
-      [studentId]: status,
-    }));
+  } catch (err) {
+    console.error("Failed to fetch attendance", err);
+  }
+};
+
+
+  // ================= CALCULATE ATTENDANCE PERCENTAGE =================
+ const markAttendance = async (attendanceId, status) => {
+  try {
+    await fetch(`/api/attendance/${attendanceId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+
+    setAttendanceRows(prev =>
+      prev.map(r =>
+        r._id === attendanceId ? { ...r, status } : r
+      )
+    );
+
     setIsSubmitted(false);
     setShowPercentageCard(false);
-  };
 
-  // ================= GET ATTENDANCE PERCENTAGE =================
-  const calculateAttendancePercentage = () => {
-    const total = filteredStudents.length;
-    const present = filteredStudents.filter(s => attendance[s.id] === "Present").length;
-    return total > 0 ? Math.round((present / total) * 100) : 0;
-  };
+  } catch (err) {
+    console.error("Failed to update attendance", err);
+  }
+};
 
-  // ================= GET DETAILED PERCENTAGE BY STATUS =================
-  const getDetailedPercentages = () => {
-    const total = filteredStudents.length;
-    if (total === 0) return {};
-    
-    return {
-      present: Math.round((filteredStudents.filter(s => attendance[s.id] === "Present").length / total) * 100),
-      absent: Math.round((filteredStudents.filter(s => attendance[s.id] === "Absent").length / total) * 100),
-      leave: Math.round((filteredStudents.filter(s => attendance[s.id] === "Leave").length / total) * 100),
-      sick: Math.round((filteredStudents.filter(s => attendance[s.id] === "Sick").length / total) * 100),
-      notMarked: Math.round((filteredStudents.filter(s => !attendance[s.id] || attendance[s.id] === "Not Marked").length / total) * 100)
-    };
-  };
 
   // ================= SUBMIT ATTENDANCE =================
-  const handleSubmitAttendance = () => {
-    const allMarked = filteredStudents.every(student => 
-      attendance[student.id] && attendance[student.id] !== "Not Marked"
-    );
-    
-    if (!allMarked) {
-      const unmarkedCount = filteredStudents.filter(student => 
-        !attendance[student.id] || attendance[student.id] === "Not Marked"
-      ).length;
-      alert(`${unmarkedCount} student(s) are not marked. Please mark attendance for all students before submitting.`);
-      return;
-    }
-    
-    const totalPercentage = calculateAttendancePercentage();
-    const detailedPercentages = getDetailedPercentages();
-    
-    // Add to history
-    const newRecord = {
-      id: Date.now(),
-      date: selectedDate,
-      class: selectedClass,
-      section: selectedSection,
-      totalStudents: filteredStudents.length,
-      presentPercentage: totalPercentage,
-      detailedPercentages,
-      timestamp: new Date().toLocaleTimeString()
-    };
-    
-    setAttendanceHistory(prev => [newRecord, ...prev]);
+ const handleSubmitAttendance = async () => {
+  const unmarked = attendanceRows.filter(r => r.status === "Not Marked");
+  if (unmarked.length > 0) {
+    alert("Please mark attendance for all students");
+    return;
+  }
+
+  try {
+    await fetch("/api/attendance/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        class: selectedClass,
+        section: selectedSection,
+        date: selectedDate,
+      }),
+    });
+
     setIsSubmitted(true);
     setShowPercentageCard(true);
     setShowSummary(true);
-    
-    // Here you would typically send the data to your backend
-    const attendanceData = {
-      date: selectedDate,
-      class: selectedClass,
-      section: selectedSection,
-      records: filteredStudents.map(student => ({
-        studentId: student.id,
-        name: student.name,
-        roll: student.roll,
-        status: attendance[student.id]
-      })),
-      summary: {
-        totalPercentage,
-        ...detailedPercentages
-      }
-    };
-    
-    console.log("Attendance submitted:", attendanceData);
-  };
+
+  } catch (err) {
+    console.error("Submit attendance failed", err);
+  }
+};
 
   // ================= RESET ATTENDANCE =================
   const resetAttendance = () => {
-    const resetAttendanceData = {};
-    filteredStudents.forEach(student => {
-      resetAttendanceData[student.id] = "Not Marked";
-    });
-    setAttendance(resetAttendanceData);
-    setIsSubmitted(false);
-    setShowPercentageCard(false);
-  };
+  handleSearch();
+  setIsSubmitted(false);
+  setShowPercentageCard(false);
+};
 
   // ================= GET ATTENDANCE SUMMARY =================
-  const getAttendanceSummary = () => {
-    const total = filteredStudents.length;
-    const present = filteredStudents.filter(s => attendance[s.id] === "Present").length;
-    const absent = filteredStudents.filter(s => attendance[s.id] === "Absent").length;
-    const leave = filteredStudents.filter(s => attendance[s.id] === "Leave").length;
-    const sick = filteredStudents.filter(s => attendance[s.id] === "Sick").length;
-    const notMarked = filteredStudents.filter(s => !attendance[s.id] || attendance[s.id] === "Not Marked").length;
-    const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
-    
-    return { total, present, absent, leave, sick, notMarked, percentage };
-  };
+const total = attendanceRows.length;
 
-  // ================= GET STUDENT STATUS =================
-  const getStudentStatus = (studentId) => {
-    return attendance[studentId] || "Not Marked";
-  };
+const present = attendanceRows.filter(r => r.status === "Present").length;
+const absent = attendanceRows.filter(r => r.status === "Absent").length;
+const leave = attendanceRows.filter(r => r.status === "Leave").length;
+const sick = attendanceRows.filter(r => r.status === "Sick").length;
+
+const notMarked = attendanceRows.filter(r => r.status === "Not Marked").length;
+const [searchText, setSearchText] = useState("");
+
+const calculateAttendancePercentage = () =>
+  total ? Math.round((present / total) * 100) : 0;
+
+const getAttendanceSummary = () => ({
+  total,
+  present,
+  absent,
+  leave,
+  sick,
+  notMarked,
+  percentage: calculateAttendancePercentage(),
+});
+
+ 
 
   return (
     <div className="p-6 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -418,54 +374,10 @@ export default function Attendance() {
       )}
 
       {/* ================= ATTENDANCE HISTORY ================= */}
-      {attendanceHistory.length > 0 && (
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
-          <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-4">
-            <FaHistory className="text-blue-600" />
-            Recent Attendance Records
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Date</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Class-Section</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Total Students</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Present %</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {attendanceHistory.slice(0, 5).map((record) => (
-                  <tr key={record.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4">{record.date}</td>
-                    <td className="py-3 px-4">
-                      <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
-                        {record.class}-{record.section}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">{record.totalStudents}</td>
-                    <td className="py-3 px-4">
-                      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
-                        record.presentPercentage >= 90 ? 'bg-green-100 text-green-800' :
-                        record.presentPercentage >= 75 ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        <FaPercentage className="text-xs" />
-                        {record.presentPercentage}%
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-gray-500 text-sm">{record.timestamp}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
+     
       {/* ================= RESULTS & ATTENDANCE ================= */}
-      {filteredStudents.length > 0 && (
+      {attendanceRows.length > 0 && (
+
         <div className="space-y-6">
           {/* Header with Stats */}
           <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
@@ -568,7 +480,7 @@ export default function Attendance() {
               <span className="font-medium">Current Status:</span> 
               <span className="ml-2 text-green-600 font-medium">{calculateAttendancePercentage()}% Overall</span>
               <span className="mx-2">•</span>
-              <span>{filteredStudents.length} Students Total</span>
+              <span>{attendanceRows.length} Students Total</span>
             </div>
             <div className="flex gap-3">
               <button
@@ -606,35 +518,35 @@ export default function Attendance() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredStudents.map((student) => (
+                  {attendanceRows.map((row) => (
                     <tr 
-                      key={student.id}
+                      key={row._id}
                       className="border-b border-gray-100 hover:bg-blue-50 transition"
                     >
                       <td className="py-4 px-6">
                         <span className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-                          {student.roll}
+                          {row.roll}
                         </span>
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-                            {student.photo}
+                            {row.photo}
                           </div>
                           <div>
-                            <div className="font-medium text-gray-900">{student.name}</div>
+                            <div className="font-medium text-gray-900">{row.studentId.basicInfo.fullName}</div>
                           </div>
                         </div>
                       </td>
                       <td className="py-4 px-6">
                         <span className="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
-                          {student.class}-{student.section}
+                          {row.class}-{row.section}
                         </span>
                       </td>
                       <td className="py-4 px-6">
-                        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${getStatusBadgeColor(getStudentStatus(student.id))}`}>
-                          {getStatusIcon(getStudentStatus(student.id))}
-                          <span className="font-medium">{getStudentStatus(student.id)}</span>
+                        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${getStatusBadgeColor(row.status)}`}>
+                          {getStatusIcon(row.status)}
+                          <span className="font-medium">{row.status}</span>
                         </div>
                       </td>
                       <td className="py-4 px-6">
@@ -644,10 +556,10 @@ export default function Attendance() {
                               key={status}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                markAttendance(student.id, status);
+                                markAttendance(row._id, status);
                               }}
                               className={`px-3 py-1 rounded text-sm font-medium transition ${
-                                getStudentStatus(student.id) === status
+                                row.status === status
                                   ? getStatusColor(status) + ' text-white shadow-md'
                                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                               }`}
@@ -674,7 +586,10 @@ export default function Attendance() {
                   <span className="text-sm text-gray-600">{status}</span>
                   {filteredStudents.length > 0 && (
                     <span className="text-xs bg-gray-100 px-2 py-0.5 rounded">
-                      {Math.round((filteredStudents.filter(s => getStudentStatus(s.id) === status).length / filteredStudents.length) * 100)}%
+                      {attendanceRows.length
+                        ? Math.round((attendanceRows.filter(r => r.status === status).length / attendanceRows.length) * 100)
+                        : 0
+                      }%
                     </span>
                   )}
                 </div>
@@ -685,7 +600,8 @@ export default function Attendance() {
       )}
 
       {/* ================= EMPTY STATE ================= */}
-      {selectedClass && selectedSection && filteredStudents.length === 0 ? (
+      {selectedClass && selectedSection && attendanceRows.length === 0 ? (
+
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-12 text-center">
           <FaUserGraduate className="text-6xl text-gray-300 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-700 mb-2">No students found</h3>
