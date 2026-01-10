@@ -1,6 +1,7 @@
 
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -8,43 +9,72 @@ import { FaUserGraduate } from "react-icons/fa";
 
 
 const StaffDashboard = () => {
+  const navigate = useNavigate();
   // Live time and date state
   const [currentTime, setCurrentTime] = useState(new Date());
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [dashboardData, setDashboardData] = useState({
-  totalStudents: 0,
-  presentToday: 0,
-  absentToday: 0,
-  attendancePercentage: 0
-});
+    totalStudents: 0,
+    presentToday: 0,
+    absentToday: 0,
+    attendancePercentage: 0
+  });
+  const [schedule, setSchedule] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
 
-  // Sample data - In real app, this would come from API
- useEffect(() => {
-  const fetchDashboardData = async () => {
-    try {
-      const today = new Date().toISOString().split("T")[0];
+  // Fetch data
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        const today = new Date().toISOString().split("T")[0];
 
-      const res = await fetch(
-        `/api/attendance/summary?date=${today}`
-      );
+        // 1. Fetch Dashboard Stats
+        const statsRes = await fetch(`http://localhost:5002/api/attendance/summary?date=${today}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const statsData = await statsRes.json();
+        setDashboardData({
+          totalStudents: statsData.total || 0,
+          presentToday: statsData.present || 0,
+          absentToday: statsData.absent || 0,
+          attendancePercentage: statsData.percentage || 0
+        });
 
-      const data = await res.json();
+        // 2. Fetch Schedule (filter by teacher name if available)
+        let scheduleUrl = "/api/timetable/today";
+        if (user.name) {
+          scheduleUrl += `?teacher=${encodeURIComponent(user.name)}`;
+        }
+        const scheduleRes = await fetch(scheduleUrl, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const scheduleData = await scheduleRes.json();
+        if (scheduleData.success) {
+          setSchedule(scheduleData.data);
+        }
 
-      setDashboardData({
-        totalStudents: data.total || 0,
-        presentToday: data.present || 0,
-        absentToday: data.absent || 0,
-        attendancePercentage: data.percentage || 0
-      });
+        // 3. Fetch Announcements
+        const annRes = await fetch("/api/announcements", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const annData = await annRes.json();
+        // Show All announcements or targeted ones
+        const relevantAnnouncements = annData.filter(a => 
+          a.targetAudience === 'Staff' || a.targetAudience === 'All'
+        );
+        // Ensure at least some data is shown if available
+        setAnnouncements(relevantAnnouncements.length > 0 ? relevantAnnouncements : annData);
 
-    } catch (err) {
-      console.error("Staff dashboard fetch error", err);
-    }
-  };
+      } catch (err) {
+        console.error("Staff dashboard fetch error", err);
+      }
+    };
 
-  fetchDashboardData();
-}, []);
+    fetchAllData();
+  }, []);
 
 
   // Update time every second
@@ -101,9 +131,9 @@ const StaffDashboard = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // In a real app, this would trigger search functionality
-      console.log('Searching for:', searchQuery);
-      alert(`Searching for: "${searchQuery}"`);
+      navigate("/staff/students", {
+        state: { search: searchQuery }
+      });
       setSearchQuery('');
     }
   };
@@ -241,7 +271,10 @@ const StaffDashboard = () => {
                   <span className="mr-2">📢</span> Flash News - {formatShortDate(currentTime)}
                 </h2>
                 <marquee className="text-sm text-yellow-700 mt-1">
-                  Mid-term exams start from 20th Sept | Parent-teacher meeting on Friday | Tomorrow is a half-day | 
+                  {announcements.length > 0 
+                    ? announcements.map(a => `${a.title}: ${a.message}`).join(" | ") + " | "
+                    : "No new announcements for today. Have a great day! | "
+                  }
                   Live time: {formatTime(currentTime)} | Today is {getDayOfWeek(currentTime)}
                 </marquee>
               </div>

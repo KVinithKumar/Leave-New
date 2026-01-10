@@ -38,6 +38,9 @@ const leaveRequestSchema = new mongoose.Schema({
     type: String,
     required: false
   },
+     studentPhotoPublicId: String,
+    guardianPhotoPublicId: String,
+
   createdAt: {
     type: Date,
     default: Date.now

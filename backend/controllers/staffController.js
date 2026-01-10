@@ -39,6 +39,8 @@ export const createStaff = async (req, res) => {
         employeeId: data.employeeId || (await generateEmployeeId()),
       },
 
+      password: data.password, // Added password field
+
       addressInfo: {
         currentAddress: data.currentAddress,
         permanentAddress: data.permanentAddress,
@@ -60,6 +62,16 @@ export const createStaff = async (req, res) => {
     });
 
     await staff.save();
+
+    await logAction({
+      action: "CREATE_STAFF",
+      userId: req.user._id,
+      role: req.user.role,
+      email: req.user.email,
+      ip: req.ip,
+      details: { name: staff.personalInfo.fullName, employeeId: staff.contactInfo.employeeId },
+    });
+
     res.status(201).json(staff);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -70,7 +82,22 @@ export const createStaff = async (req, res) => {
 // GET ALL STAFF (CRITICAL FIX)
 export const getAllStaff = async (req, res) => {
   try {
-    const staff = await Staff.find().lean();
+    const { search } = req.query;
+    let query = {};
+
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+      query = {
+        $or: [
+          { "personalInfo.fullName": searchRegex },
+          { "contactInfo.email": searchRegex },
+          { "contactInfo.employeeId": searchRegex },
+          { "professionalInfo.subjectSpecialization": searchRegex },
+        ],
+      };
+    }
+
+    const staff = await Staff.find(query).lean();
 
     const formatted = staff.map(s => ({
       _id: s._id,
@@ -180,6 +207,18 @@ export const updateStaff = async (req, res) => {
       { new: true }
     );
 
+    // LOGGING
+    if (req.user) {
+      await logAction({
+        action: "UPDATE_STAFF",
+        userId: req.user._id,
+        role: req.user.role,
+        email: req.user.email,
+        ip: req.ip,
+        details: { name: staff.personalInfo.fullName, employeeId: staff.contactInfo.employeeId },
+      });
+    }
+
     res.json(staff);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -191,7 +230,25 @@ export const updateStaff = async (req, res) => {
 ========================== */
 export const deleteStaff = async (req, res) => {
   try {
+    const staff = await Staff.findById(req.params.id);
+    if (!staff) {
+      return res.status(404).json({ message: "Staff not found" });
+    }
+
     await Staff.findByIdAndDelete(req.params.id);
+
+    // LOGGING
+    if (req.user) {
+      await logAction({
+        action: "DELETE_STAFF",
+        userId: req.user._id,
+        role: req.user.role,
+        email: req.user.email,
+        ip: req.ip,
+        details: { name: staff.personalInfo.fullName, employeeId: staff.contactInfo.employeeId },
+      });
+    }
+
     res.json({ message: "Staff deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -205,8 +262,33 @@ export const bulkDeleteStaff = async (req, res) => {
   try {
     const { ids } = req.body; // array of staff IDs
     await Staff.deleteMany({ _id: { $in: ids } });
+
+    await logAction({
+      action: "BULK_DELETE_STAFF",
+      userId: req.user._id,
+      role: req.user.role,
+      email: req.user.email,
+      ip: req.ip,
+      details: { count: ids.length, ids },
+    });
+
     res.json({ message: "Selected staff deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+export const getTeachers = async (req, res) => {
+  try {
+    const teachers = await Staff.find(
+      { status: "Active" },
+      {
+        "personalInfo.fullName": 1,
+        "professionalInfo.subjectDealing": 1,
+      }
+    );
+
+    res.json({ success: true, data: teachers });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };

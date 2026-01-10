@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import BackButton from "../components/BackButton";
 
@@ -33,6 +34,31 @@ export default function Students() {
   const [selectedSection, setSelectedSection] = useState("");
   const [searchText, setSearchText] = useState("");
   const [filteredStudents, setFilteredStudents] = useState([]);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.search) {
+      setSearchText(location.state.search);
+       // Trigger fetch immediately when search comes from navigation
+       const params = new URLSearchParams();
+       params.append("search", location.state.search);
+       fetch(`http://localhost:5002/api/students?${params.toString()}`, {
+         headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+       })
+       .then(res => res.json())
+       .then(data => {
+         const normalized = data.map(s => ({
+           ...s,
+           attendance: typeof s.attendance === "string" ? s.attendance : `${s.attendance}%`,
+         }));
+         setStudentsData(normalized);
+         setFilteredStudents(normalized);
+       });
+    } else {
+        fetchStudents();
+    }
+  }, [location.state]);
+
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -91,28 +117,7 @@ const [studentsData, setStudentsData] = useState([]);
 
   // ================= HANDLERS =================
 const handleSearch = () => {
-  const text = searchText.toLowerCase();
-
-  let result = studentsData.filter((student) => {
-    const matchesClass =
-      !selectedClass || String(student.class) === String(selectedClass);
-
-    const matchesSection =
-      !selectedSection || student.section === selectedSection;
-
-    const matchesSearch =
-      !text ||
-      (student.name && student.name.toLowerCase().includes(text)) ||
-      (student.roll && String(student.roll).includes(text)) ||
-      (student.email && student.email.toLowerCase().includes(text));
-
-    return matchesClass && matchesSection && matchesSearch;
-  });
-
-  // ✅ correct numeric sorting
-  result.sort((a, b) => Number(a.roll) - Number(b.roll));
-
-  setFilteredStudents(result);
+  fetchStudents();
 };
 
 
@@ -133,7 +138,7 @@ const handleReset = () => {
 
   const handleAddStudent = async () => {
   try {
-    const res = await fetch("http://localhost:5000/api/students", {
+    const res = await fetch("http://localhost:5002/api/students", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
@@ -182,7 +187,7 @@ const handleReset = () => {
   const handleUpdateStudent = async () => {
   try {
     const res = await fetch(
-      `http://localhost:5000/api/students/${editingStudent._id}`,
+      `http://localhost:5002/api/students/${editingStudent._id}`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -208,7 +213,7 @@ const handleReset = () => {
 
 const handleDeleteStudent = async (id) => {
   try {
-    await fetch(`http://localhost:5000/api/students/${id}`, {
+    await fetch(`http://localhost:5002/api/students/${id}`, {
       method: "DELETE",
     });
 
@@ -243,13 +248,18 @@ const handleDeleteStudent = async (id) => {
       daysschoolarhostel: "schoolar"
     });
   };
-  useEffect(() => {
-  handleSearch();
-}, [searchText, selectedClass, selectedSection, studentsData]);
-
-const fetchStudents = async () => {
+  const fetchStudents = async () => {
   try {
-    const res = await fetch("http://localhost:5000/api/students");
+    const params = new URLSearchParams();
+    if (searchText) params.append("search", searchText);
+    if (selectedClass) params.append("class", selectedClass);
+    if (selectedSection) params.append("section", selectedSection);
+
+    const res = await fetch(`http://localhost:5002/api/students?${params.toString()}`, {
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      }
+    });
     const data = await res.json();
 
     const normalized = data.map(s => ({
@@ -267,8 +277,11 @@ const fetchStudents = async () => {
 };
 
 useEffect(() => {
-  fetchStudents();
-}, []);
+  const timer = setTimeout(() => {
+    fetchStudents();
+  }, 500);
+  return () => clearTimeout(timer);
+}, [searchText, selectedClass, selectedSection]);
 
   const handleExport = () => {
     const dataToExport = filteredStudents.length > 0 ? filteredStudents : studentsData;

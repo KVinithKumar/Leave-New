@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { FaUser, FaUsers } from "react-icons/fa";
+import { FaUser, FaUsers, FaLock } from "react-icons/fa";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
@@ -8,6 +8,11 @@ const SelectRole = () => {
   const navigate = useNavigate();
 
   const roles = [
+    {
+      title: "Admin",
+      icon: <FaLock size={90} className="text-black" />,
+      route: "/admin-login",
+    },
     {
       title: "Principal",
       icon: <FaUser size={90} className="text-black" />,
@@ -33,7 +38,7 @@ const SelectRole = () => {
           </h2>
 
           {/* Role cards container */}
-          <div className="grid w-full grid-cols-1 gap-12 sm:grid-cols-2 max-w-2xl mx-auto">
+          <div className="grid w-full grid-cols-1 gap-12 sm:grid-cols-3 max-w-4xl mx-auto">
             {roles.map((role) => (
               <div
                 key={role.title}

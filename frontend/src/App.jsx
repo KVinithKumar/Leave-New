@@ -7,6 +7,8 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import RoleSelect from "./pages/RoleSelect";
 import PrincipalLogin from "./pages/PrincipalLogin";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./dashboards/AdminDashboard";
 
 import StaffDashboard from "./dashboards/StaffDashboard";
 import Students from "./dashboards/Students";
@@ -32,9 +34,13 @@ function App() {
       <Routes>
 
         <Route path="/" element={<Home />} />
-        <Route path="/staff-login" element={<Login />} />
         <Route path="/select-role" element={<RoleSelect />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/staff-login" element={<Login />} />
         <Route path="/principal-login" element={<PrincipalLogin />} />
+
+        {/* ADMIN DASHBOARD */}
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
         {/* STAFF DASHBOARD */}
         <Route path="/staff/dashboard" element={<StaffDashboard />} />
@@ -52,6 +58,7 @@ function App() {
         <Route path="/principal/attendance/staff" element={<AttendanceManagement />} />
         <Route path="/principal/students" element={<StudentManagement />} />
         <Route path="/principal/announcements" element={<Announcements />} />
+        <Route path="/staff/announcements" element={<Announcements />} />
         <Route path="/principal/timetable" element={<PrincipalTimeTable />} />
         <Route path="/principal/profile" element={<Principalprofile />} />
          <Route path="/principal/staff" element={<StaffManagement />} />

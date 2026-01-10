@@ -1,10 +1,21 @@
-// Timetable.jsx
 import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import BackButton from '../components/BackButton';
+import { useNavigate } from "react-router-dom";
+import { FaArrowLeft, FaEdit, FaTrash, FaPlus, FaClock, FaCalendarAlt, FaCheckCircle } from "react-icons/fa";
+import {
+  fetchTimetable,
+  addClassApi,
+  updateClassApi,
+  deleteClassApi
+} from "../api/timetableApi";
+import { fetchTeachers } from "../api/staffApi";
 
 const Timetable = () => {
+  const navigate = useNavigate();
+  const [selectedClass, setSelectedClass] = useState("6");
+const [selectedSection, setSelectedSection] = useState("A");
+
   // Days of the week
   const days = [
     { id: 'mon', name: 'Monday', short: 'Mon' },
@@ -18,15 +29,15 @@ const Timetable = () => {
 
   // Time periods with names
   const periods = [
-    { id: 'p1', time: '8:00 - 9:00', name: 'Period 1' },
-    { id: 'p2', time: '9:00 - 10:00', name: 'Period 2' },
-    { id: 'p3', time: '10:00 - 11:00', name: 'Period 3' },
-    { id: 'p4', time: '11:00 - 12:00', name: 'Period 4' },
-    { id: 'p5', time: '12:00 - 13:00', name: 'Period 5' },
-    { id: 'p6', time: '13:00 - 14:00', name: 'Period 6' },
-    { id: 'p7', time: '14:00 - 15:00', name: 'Period 7' },
-    { id: 'p8', time: '15:00 - 16:00', name: 'Period 8' },
-    { id: 'p9', time: '16:00 - 17:00', name: 'Period 9' }
+    { id: 'p1', time: '8:00 - 9:00', name: 'P1' },
+    { id: 'p2', time: '9:00 - 10:00', name: 'P2' },
+    { id: 'p3', time: '10:00 - 11:00', name: 'P3' },
+    { id: 'p4', time: '11:00 - 12:00', name: 'P4' },
+    { id: 'p5', time: '12:00 - 13:00', name: 'P5' },
+    { id: 'p6', time: '13:00 - 14:00', name: 'P6' },
+    { id: 'p7', time: '14:00 - 15:00', name: 'P7' },
+    { id: 'p8', time: '15:00 - 16:00', name: 'P8' },
+    { id: 'p9', time: '16:00 - 17:00', name: 'P9' }
   ];
 
   // Available subjects
@@ -36,78 +47,28 @@ const Timetable = () => {
     'Art', 'Music', 'Physical Education', 'Languages', 'Elective'
   ];
 
-  // Color schemes for subjects
-  const subjectColors = {
-    'Mathematics': 'bg-red-50 border-red-200 text-red-800',
-    'Physics': 'bg-blue-50 border-blue-200 text-blue-800',
-    'Chemistry': 'bg-green-50 border-green-200 text-green-800',
-    'Biology': 'bg-emerald-50 border-emerald-200 text-emerald-800',
-    'Computer Science': 'bg-purple-50 border-purple-200 text-purple-800',
-    'English': 'bg-amber-50 border-amber-200 text-amber-800',
-    'History': 'bg-orange-50 border-orange-200 text-orange-800',
-    'Geography': 'bg-teal-50 border-teal-200 text-teal-800',
-    'Economics': 'bg-indigo-50 border-indigo-200 text-indigo-800',
-    'Business Studies': 'bg-pink-50 border-pink-200 text-pink-800',
-    'Art': 'bg-yellow-50 border-yellow-200 text-yellow-800',
-    'Music': 'bg-cyan-50 border-cyan-200 text-cyan-800',
-    'Physical Education': 'bg-lime-50 border-lime-200 text-lime-800',
-    'Languages': 'bg-violet-50 border-violet-200 text-violet-800',
-    'Elective': 'bg-gray-50 border-gray-200 text-gray-800',
-    'default': 'bg-gray-50 border-gray-200 text-gray-800'
-  };
+ 
 
-  // Initial schedule data
-  const initialSchedule = {
-    mon: {
-      p1: { subject: 'Mathematics', teacher: 'Mr. Smith', room: '301' },
-      p3: { subject: 'Physics', teacher: 'Ms. Johnson', room: 'Lab 1' },
-      p5: { subject: 'English', teacher: 'Mrs. Wilson', room: '105' },
-      p7: { subject: 'Computer Science', teacher: 'Dr. Brown', room: 'Lab 2' }
-    },
-    tue: {
-      p2: { subject: 'Chemistry', teacher: 'Dr. Taylor', room: 'Lab 3' },
-      p4: { subject: 'Biology', teacher: 'Ms. Davis', room: '204' },
-      p6: { subject: 'History', teacher: 'Mr. Clark', room: '108' },
-      p8: { subject: 'Art', teacher: 'Mrs. Lee', room: 'Studio' }
-    },
-    wed: {
-      p1: { subject: 'Mathematics', teacher: 'Mr. Smith', room: '301' },
-      p3: { subject: 'Physical Education', teacher: 'Coach Miller', room: 'Ground' },
-      p5: { subject: 'Geography', teacher: 'Mr. White', room: '207' },
-      p7: { subject: 'Music', teacher: 'Mrs. Harris', room: 'Music Room' }
-    },
-    thu: {
-      p2: { subject: 'Economics', teacher: 'Mr. Moore', room: '209' },
-      p4: { subject: 'Business Studies', teacher: 'Ms. Thompson', room: '210' },
-      p6: { subject: 'Languages', teacher: 'Mrs. Garcia', room: '211' },
-      p8: { subject: 'Elective', teacher: 'Various', room: 'Various' }
-    },
-    fri: {
-      p1: { subject: 'Physics', teacher: 'Ms. Johnson', room: 'Lab 1' },
-      p3: { subject: 'Chemistry', teacher: 'Dr. Taylor', room: 'Lab 3' },
-      p5: { subject: 'Computer Science', teacher: 'Dr. Brown', room: 'Lab 2' },
-      p7: { subject: 'Project Work', teacher: 'Various', room: 'Various' }
-    },
-    sat: {
-      p2: { subject: 'Club Activities', teacher: 'Various', room: 'Various' },
-      p4: { subject: 'Sports', teacher: 'Coaches', room: 'Field' }
-    },
-    sun: {} // Sunday is typically off
-  };
+  // Initial logs data
+  const initialLogs = [
+    { id: 1, action: 'Class Added', details: 'Mathematics added to Monday P1', timestamp: '2024-01-15 10:30 AM', user: 'Admin' },
+    { id: 2, action: 'Class Modified', details: 'Physics teacher changed in Wednesday P3', timestamp: '2024-01-15 11:45 AM', user: 'Admin' },
+    { id: 3, action: 'Timetable Published', details: 'Timetable published for students', timestamp: '2024-01-14 03:20 PM', user: 'Admin' },
+    { id: 4, action: 'Class Deleted', details: 'Chemistry removed from Friday P8', timestamp: '2024-01-13 02:15 PM', user: 'Admin' },
+    { id: 5, action: 'Timetable Reset', details: 'Timetable reset to default', timestamp: '2024-01-12 09:10 AM', user: 'Admin' },
+    { id: 6, action: 'Class Added', details: 'Art added to Tuesday P8', timestamp: '2024-01-11 04:30 PM', user: 'Admin' },
+  ];
 
   // State management
-  const [schedule, setSchedule] = useState(() => {
-    const saved = localStorage.getItem('timetableData');
-    return saved ? JSON.parse(saved) : initialSchedule;
-  });
-  
-  const [isPublished, setIsPublished] = useState(() => {
-    const saved = localStorage.getItem('timetablePublished');
-    return saved === 'true';
-  });
-  
+const [schedule, setSchedule] = useState({});
+const [dbMap, setDbMap] = useState({}); // slotId → Mongo _id
+const [isPublished, setIsPublished] = useState(false);
+const [teachers, setTeachers] = useState([]);
+
   const [editingCell, setEditingCell] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [highlightPeriod, setHighlightPeriod] = useState(null);
   const [newClass, setNewClass] = useState({
@@ -118,6 +79,38 @@ const Timetable = () => {
     room: ''
   });
 
+  // Search function
+  const performSearch = async (query) => {
+    if (!query) {
+      setIsSearching(false);
+      return;
+    }
+    setIsSearching(true);
+    try {
+      const res = await fetch(`/api/timetable/search?query=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      if (data.success) {
+        setSearchResults(data.data);
+      }
+    } catch (err) {
+      console.error("Search failed", err);
+    }
+  };
+
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      if (searchTerm) performSearch(searchTerm);
+      else setIsSearching(false);
+    }, 500);
+    return () => clearTimeout(delay);
+  }, [searchTerm]);
+
+  // Logs state
+  const [logs, setLogs] = useState(() => {
+    const saved = localStorage.getItem('timetableLogs');
+    return saved ? JSON.parse(saved) : initialLogs;
+  });
+
   // Save to localStorage whenever schedule changes
   useEffect(() => {
     localStorage.setItem('timetableData', JSON.stringify(schedule));
@@ -126,6 +119,64 @@ const Timetable = () => {
   useEffect(() => {
     localStorage.setItem('timetablePublished', isPublished.toString());
   }, [isPublished]);
+
+  useEffect(() => {
+    localStorage.setItem('timetableLogs', JSON.stringify(logs));
+  }, [logs]);
+useEffect(() => {
+  const loadTimetable = async () => {
+    try {
+      const res = await fetchTimetable(selectedClass, selectedSection);
+
+      const formatted = {};
+      const idMap = {};
+
+      res.data.data.forEach(item => {
+        const dayMap = {
+          Monday: "mon",
+          Tuesday: "tue",
+          Wednesday: "wed",
+          Thursday: "thu",
+          Friday: "fri",
+          Saturday: "sat",
+          Sunday: "sun",
+        };
+
+        const dayKey = dayMap[item.day];
+        const periodKey = `p${item.period.id}`;
+
+        if (!formatted[dayKey]) formatted[dayKey] = {};
+
+        formatted[dayKey][periodKey] = {
+          subject: item.subject,
+          teacher: item.teacher,
+          room: item.room,
+        };
+
+        idMap[`${dayKey}-${periodKey}`] = item._id;
+      });
+
+      setSchedule(formatted);
+      setDbMap(idMap);
+    } catch (err) {
+      console.error("Failed to load timetable", err);
+    }
+  };
+
+  loadTimetable();
+}, [selectedClass, selectedSection]);
+useEffect(() => {
+  const loadTeachers = async () => {
+    try {
+      const res = await fetchTeachers();
+      setTeachers(res.data.data);
+    } catch (err) {
+      console.error("Failed to load teachers", err);
+    }
+  };
+
+  loadTeachers();
+}, []);
 
   // Auto-highlight current period based on time
   useEffect(() => {
@@ -152,6 +203,30 @@ const Timetable = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Add log entry
+  const addLog = (action, details) => {
+    const now = new Date();
+    const timestamp = now.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    }) + ' ' + now.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true 
+    });
+    
+    const newLog = {
+      id: logs.length + 1,
+      action,
+      details,
+      timestamp,
+      user: 'Admin' // You can change this to dynamic user if needed
+    };
+    
+    setLogs(prevLogs => [newLog, ...prevLogs.slice(0, 9)]); // Keep only last 10 logs
+  };
+
   // Handle cell click for editing
   const handleCellClick = (dayId, periodId) => {
     const existingClass = schedule[dayId]?.[periodId];
@@ -176,80 +251,121 @@ const Timetable = () => {
   };
 
   // Save edited class
-  const handleSaveEdit = () => {
-    if (!editingCell.subject.trim()) {
-      alert('Please enter a subject');
-      return;
-    }
+ const handleSaveEdit = async () => {
+  try {
+    const key = `${editingCell.originalDay}-${editingCell.originalPeriod}`;
+    const id = dbMap[key];
 
-    const updatedSchedule = { ...schedule };
-    
-    // Remove from original slot if day or period changed
-    if (editingCell.originalDay && editingCell.originalPeriod) {
-      if (updatedSchedule[editingCell.originalDay]?.[editingCell.originalPeriod]) {
-        delete updatedSchedule[editingCell.originalDay][editingCell.originalPeriod];
-      }
-    }
-
-    // Add to new slot
-    if (!updatedSchedule[editingCell.day]) {
-      updatedSchedule[editingCell.day] = {};
-    }
-
-    updatedSchedule[editingCell.day][editingCell.period] = {
+    await updateClassApi(id, {
       subject: editingCell.subject,
       teacher: editingCell.teacher,
-      room: editingCell.room
-    };
+      room: editingCell.room,
+    });
 
-    setSchedule(updatedSchedule);
+    setSchedule(prev => ({
+      ...prev,
+      [editingCell.day]: {
+        ...prev[editingCell.day],
+        [editingCell.period]: {
+          subject: editingCell.subject,
+          teacher: editingCell.teacher,
+          room: editingCell.room,
+        },
+      },
+    }));
+
+    addLog("Class Modified", `${editingCell.subject} updated`);
     setEditingCell(null);
-  };
+  } catch (err) {
+    alert("Failed to update class");
+  }
+};
 
   // Add new class
-  const handleAddClass = () => {
-    if (!newClass.subject.trim()) {
-      alert('Please select a subject');
-      return;
-    }
+ const handleAddClass = async () => {
+  if (!newClass.subject.trim()) {
+    alert("Please select a subject");
+    return;
+  }
 
-    const updatedSchedule = { ...schedule };
-    if (!updatedSchedule[newClass.day]) {
-      updatedSchedule[newClass.day] = {};
-    }
+  try {
+    const periodNumber = Number(newClass.period.replace("p", ""));
+    const periodInfo = periods.find(p => p.id === newClass.period);
 
-    updatedSchedule[newClass.day][newClass.period] = {
+    const payload = {
+      className: selectedClass,
+      section: selectedSection,
+      day: days.find(d => d.id === newClass.day).name,
+      period: {
+        id: periodNumber,
+        label: `Period ${periodNumber}`,
+        startTime: periodInfo.time.split(" - ")[0],
+        endTime: periodInfo.time.split(" - ")[1],
+      },
       subject: newClass.subject,
       teacher: newClass.teacher,
-      room: newClass.room
+      room: newClass.room,
     };
 
-    setSchedule(updatedSchedule);
+    const res = await addClassApi(payload);
+
+    setSchedule(prev => ({
+      ...prev,
+      [newClass.day]: {
+        ...prev[newClass.day],
+        [newClass.period]: {
+          subject: newClass.subject,
+          teacher: newClass.teacher,
+          room: newClass.room,
+        },
+      },
+    }));
+
+    setDbMap(prev => ({
+      ...prev,
+      [`${newClass.day}-${newClass.period}`]: res.data.data._id,
+    }));
+
+    addLog("Class Added", `${newClass.subject} added`);
     setShowAddForm(false);
-    setNewClass({
-      day: 'mon',
-      period: 'p1',
-      subject: '',
-      teacher: '',
-      room: ''
-    });
-  };
+  } catch (err) {
+    alert(err.response?.data?.message || "Failed to add class");
+  }
+};
 
   // Delete class
-  const handleDeleteClass = (dayId, periodId) => {
-    if (window.confirm('Are you sure you want to delete this class?')) {
-      const updatedSchedule = { ...schedule };
-      if (updatedSchedule[dayId]?.[periodId]) {
-        delete updatedSchedule[dayId][periodId];
-        setSchedule(updatedSchedule);
-      }
-    }
-  };
+const handleDeleteClass = async (dayId, periodId) => {
+  if (!window.confirm("Delete this class?")) return;
+
+  try {
+    const key = `${dayId}-${periodId}`;
+    const id = dbMap[key];
+
+    await deleteClassApi(id);
+
+    setSchedule(prev => {
+      const updated = { ...prev };
+      delete updated[dayId][periodId];
+      return updated;
+    });
+
+    addLog("Class Deleted", "Class removed");
+    setEditingCell(null);
+  } catch (err) {
+    alert("Failed to delete class");
+  }
+};
+
 
   // Handle publish/unpublish
   const handlePublishToggle = () => {
     const newStatus = !isPublished;
     setIsPublished(newStatus);
+    
+    // Add log entry
+    addLog(newStatus ? 'Timetable Published' : 'Timetable Unpublished', 
+           newStatus ? 'Timetable published for students' : 'Timetable unpublished');
+    
     alert(`Timetable ${newStatus ? 'published' : 'unpublished'} successfully!`);
   };
 
@@ -262,6 +378,9 @@ const Timetable = () => {
     link.href = url;
     link.download = 'timetable-schedule.json';
     link.click();
+    
+    // Add log entry
+    addLog('Timetable Exported', 'Timetable data exported to JSON file');
   };
 
   // Import timetable
@@ -274,6 +393,10 @@ const Timetable = () => {
       try {
         const importedSchedule = JSON.parse(e.target.result);
         setSchedule(importedSchedule);
+        
+        // Add log entry
+        addLog('Timetable Imported', 'Timetable data imported from file');
+        
         alert('Timetable imported successfully!');
       } catch (error) {
         alert('Error importing file. Please check the format.');
@@ -283,36 +406,96 @@ const Timetable = () => {
   };
 
   // Reset to default
-  const handleReset = () => {
-    if (window.confirm('Are you sure you want to reset to default schedule?')) {
-      setSchedule(initialSchedule);
-      setIsPublished(false);
-    }
-  };
+const handleReset = async () => {
+  if (!window.confirm("Reset timetable for this class?")) return;
 
-  // Get subject color
-  const getSubjectColor = (subject) => {
-    return subjectColors[subject] || subjectColors.default;
+  try {
+    setSchedule({});
+    setDbMap({});
+    addLog("Timetable Reset", "Timetable cleared");
+  } catch {
+    alert("Failed to reset");
+  }
+};
+
+  // Clear all logs
+  const handleClearLogs = () => {
+    if (window.confirm('Are you sure you want to clear all logs?')) {
+      setLogs([]);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-[95rem] mx-auto">
         {/* Header */}
         <Header/>
-        <div className="mt-4">
-          <BackButton />
+        {/* Back to Dashboard Button */}
+        <div className="container px-2 pt-2">
+          <button
+            onClick={() => navigate('/principal/dashboard')}
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition mb-2"
+          >
+            <FaArrowLeft />
+            <span className="font-medium">Back to Dashboard</span>
+          </button>
         </div>
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800">Academic Timetable</h1>
           <p className="text-gray-600 mt-2">Manage your weekly schedule efficiently</p>
         </div>
 
-        {/* Control Panel */}
+               {/* Control Panel */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             {/* Left side controls */}
             <div className="flex flex-col sm:flex-row gap-4">
+              {/* Class and Section Filters */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                {/* Class Filter */}
+                <div className="relative">
+<select
+  value={selectedClass}
+  onChange={(e) => setSelectedClass(e.target.value)}
+  className="w-full sm:w-40 px-4 py-2 border rounded-lg"
+>
+                    <option value="">Select Class</option>
+                    <option value="10">Class 10</option>
+                    <option value="9">Class 9</option>
+                    <option value="8">Class 8</option>
+                    <option value="7">Class 7</option>
+                    <option value="6">Class 6</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </div>
+                </div>
+                
+                {/* Section Filter */}
+                <div className="relative">
+<select
+  value={selectedSection}
+  onChange={(e) => setSelectedSection(e.target.value)}
+  className="w-full sm:w-40 px-4 py-2 border rounded-lg"
+>
+                    <option value="">Select Section</option>
+                    <option value="A">Section A</option>
+                    <option value="B">Section B</option>
+                    <option value="C">Section C</option>
+                    <option value="D">Section D</option>
+                    <option value="E">Section E</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              
               {/* Search */}
               <div className="relative">
                 <input
@@ -347,7 +530,8 @@ const Timetable = () => {
                 onClick={() => setShowAddForm(true)}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium flex items-center gap-2"
               >
-                <span>+ Add Class</span>
+                <FaPlus />
+                <span>Add Class</span>
               </button>
               <button
                 onClick={handleExport}
@@ -382,32 +566,77 @@ const Timetable = () => {
           </div>
         </div>
 
-        {/* Timetable Grid */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 mb-8">
+        {/* Search Results or Timetable Grid */}
+        {isSearching && searchTerm ? (
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">Search Results for "{searchTerm}"</h2>
+            {searchResults.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {searchResults.map(result => (
+                  <div key={result._id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <div className="font-bold text-lg text-blue-700">{result.subject}</div>
+                        <div className="text-sm font-medium text-gray-800">{result.teacher}</div>
+                      </div>
+                      <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded">
+                        Class {result.className}-{result.section}
+                      </span>
+                    </div>
+                    <div className="border-t border-gray-100 pt-2 mt-2 space-y-1 text-sm text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <FaCalendarAlt className="text-gray-400" />
+                        <span className="capitalize">{result.day}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <FaClock className="text-gray-400" />
+                        <span>Period {result.period.id}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-400">🚪</span>
+                        <span>{result.room}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p className="text-lg">No classes found matching your search.</p>
+              </div>
+            )}
+          </div>
+        ) : (
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 mb-8 overflow-x-auto">
           {/* Header Row - Periods */}
-          <div className="grid grid-cols-8 border-b border-gray-200">
-            <div className="p-4 bg-gray-50 font-semibold text-gray-700">Day/Period</div>
+          <div className="grid grid-cols-10 border-b border-gray-200 min-w-[1200px]">
+            <div className="p-4 bg-gray-50 font-semibold text-gray-700 sticky left-0 z-10">Day/Period</div>
             {periods.map(period => (
               <div
                 key={period.id}
                 className={`p-4 text-center border-l border-gray-200 ${highlightPeriod === period.id ? 'bg-blue-50' : 'bg-gray-50'}`}
               >
                 <div className="font-semibold text-gray-800">{period.name}</div>
-                <div className="text-sm text-gray-600 mt-1">{period.time}</div>
+                <div className="text-xs text-gray-600 mt-1">{period.time}</div>
+                {highlightPeriod === period.id && (
+                  <div className="mt-1">
+                    <span className="inline-block w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
 
           {/* Days Rows */}
           {days.map(day => (
-            <div key={day.id} className="grid grid-cols-8 border-b border-gray-200 last:border-b-0 hover:bg-gray-50">
-              {/* Day Column */}
-              <div className="p-4 bg-gray-50 border-r border-gray-200">
+            <div key={day.id} className="grid grid-cols-10 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 min-w-[1200px]">
+              {/* Day Column - Made sticky */}
+              <div className="p-4 bg-gray-50 border-r border-gray-200 sticky left-0 z-10">
                 <div className="font-semibold text-gray-800">{day.name}</div>
                 <div className="text-sm text-gray-600">{day.short}</div>
               </div>
 
-              {/* Period Cells */}
+              {/* Period Cells - All 9 periods */}
               {periods.map(period => {
                 const classInfo = schedule[day.id]?.[period.id];
                 const isCurrentPeriod = highlightPeriod === period.id;
@@ -415,13 +644,13 @@ const Timetable = () => {
                 return (
                   <div
                     key={`${day.id}-${period.id}`}
-                    className={`p-3 border-l border-gray-200 min-h-[100px] flex items-center justify-center cursor-pointer transition-all duration-200 ${isCurrentPeriod ? 'bg-blue-50' : ''}`}
+                    className={`p-3 border-l border-gray-200 min-h-[120px] flex items-center justify-center cursor-pointer transition-all duration-200 ${isCurrentPeriod ? 'bg-blue-50' : ''}`}
                     onClick={() => handleCellClick(day.id, period.id)}
                   >
                     {classInfo ? (
-                      <div className={`w-full h-full p-3 rounded-lg border ${getSubjectColor(classInfo.subject)} flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow`}>
-                        <div className="font-semibold text-sm md:text-base">{classInfo.subject}</div>
-                        <div className="text-xs text-gray-600 mt-1">{classInfo.teacher}</div>
+                      <div className={`w-full h-full p-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow ${isCurrentPeriod ? 'ring-2 ring-blue-300' : ''}`}>
+                        <div className="font-semibold text-sm text-gray-800 truncate w-full">{classInfo.subject}</div>
+                        <div className="text-xs text-gray-600 mt-1 truncate w-full">{classInfo.teacher}</div>
                         <div className="text-xs text-gray-500 mt-0.5">{classInfo.room}</div>
                         <button
                           onClick={(e) => {
@@ -434,14 +663,15 @@ const Timetable = () => {
                               originalPeriod: period.id
                             });
                           }}
-                          className="mt-2 text-xs px-2 py-1 bg-white bg-opacity-80 rounded hover:bg-opacity-100"
+                          className="mt-2 text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 flex items-center gap-1"
                         >
+                          <FaEdit size={10} />
                           Edit
                         </button>
                       </div>
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 hover:text-gray-600">
-                        <span className="text-2xl">+</span>
+                      <div className={`w-full h-full flex flex-col items-center justify-center ${isCurrentPeriod ? 'bg-blue-50' : 'text-gray-400 hover:text-gray-600'}`}>
+                        <FaPlus className="text-2xl" />
                         <span className="text-xs mt-1">Add Class</span>
                       </div>
                     )}
@@ -451,17 +681,129 @@ const Timetable = () => {
             </div>
           ))}
         </div>
+        )}
 
-        {/* Color Legend */}
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 mb-8">
-          <h3 className="font-semibold text-gray-800 mb-4">Subject Colors</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {availableSubjects.slice(0, 10).map(subject => (
-              <div key={subject} className="flex items-center">
-                <div className={`w-4 h-4 rounded mr-2 ${getSubjectColor(subject).split(' ')[0]}`}></div>
-                <span className="text-sm text-gray-600">{subject}</span>
+        {/* Current Period Indicator */}
+        {highlightPeriod && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl shadow-sm p-4 mb-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                <div>
+                  <h3 className="font-semibold text-blue-800">Current Period</h3>
+                  <p className="text-sm text-blue-600">
+                    Period {periods.find(p => p.id === highlightPeriod)?.name.replace('P', '')} • 
+                    {periods.find(p => p.id === highlightPeriod)?.time}
+                  </p>
+                </div>
               </div>
-            ))}
+              <div className="text-sm text-blue-700">
+                <FaClock className="inline mr-1" />
+                {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Activity Logs Section */}
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="text-xl font-bold text-gray-800">Activity Logs</h3>
+              <p className="text-gray-600 mt-1">Recent timetable modifications</p>
+            </div>
+            <button
+              onClick={handleClearLogs}
+              className="px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg font-medium flex items-center gap-2"
+            >
+              <FaTrash />
+              Clear Logs
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Action</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Details</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">Timestamp</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">User</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.length > 0 ? (
+                  logs.map((log) => (
+                    <tr key={log.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          {log.action === 'Class Added' && <FaPlus className="text-green-500" />}
+                          {log.action === 'Class Modified' && <FaEdit className="text-blue-500" />}
+                          {log.action === 'Class Deleted' && <FaTrash className="text-red-500" />}
+                          {log.action.includes('Published') && <FaCheckCircle className="text-green-500" />}
+                          {log.action === 'Timetable Reset' && <span className="text-orange-500">🔄</span>}
+                          {log.action === 'Timetable Exported' && <span className="text-purple-500">💾</span>}
+                          {log.action === 'Timetable Imported' && <span className="text-indigo-500">📁</span>}
+                          <span className="font-medium text-gray-800">{log.action}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-gray-600">{log.details}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <FaCalendarAlt className="text-gray-400" />
+                          {log.timestamp}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                          {log.user}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="py-8 text-center text-gray-500">
+                      No activity logs yet
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-4 text-sm text-gray-500">
+            Showing {logs.length} recent activities
+          </div>
+        </div>
+
+        {/* Statistics */}
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 mb-8">
+          <h3 className="font-semibold text-gray-800 mb-4">Schedule Statistics</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-blue-600">
+                {Object.values(schedule).reduce((total, day) => total + Object.keys(day || {}).length, 0)}
+              </div>
+              <div className="text-gray-600">Total Classes</div>
+            </div>
+            
+            <div className="text-center">
+              <div className="text-3xl font-bold text-green-600">{days.length}</div>
+              <div className="text-gray-600">Days</div>
+            </div>
+            
+            <div className="text-center">
+              <div className="text-3xl font-bold text-purple-600">{periods.length}</div>
+              <div className="text-gray-600">Periods</div>
+            </div>
+            
+            <div className="text-center">
+              <div className="text-3xl font-bold text-orange-600">
+                {new Set(Object.values(schedule).flatMap(day => Object.values(day || {}).map(c => c.subject))).size}
+              </div>
+              <div className="text-gray-600">Unique Subjects</div>
+            </div>
           </div>
         </div>
 
@@ -501,7 +843,7 @@ const Timetable = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     {periods.map(period => (
-                      <option key={period.id} value={period.id}>{period.name} ({period.time})</option>
+                      <option key={period.id} value={period.id}>Period {period.name.replace('P', '')} ({period.time})</option>
                     ))}
                   </select>
                 </div>
@@ -522,13 +864,22 @@ const Timetable = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Teacher</label>
-                  <input
-                    type="text"
-                    value={editingCell.teacher}
-                    onChange={(e) => setEditingCell({...editingCell, teacher: e.target.value})}
-                    placeholder="Teacher's name"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <select
+  value={editingCell.teacher}
+  onChange={(e) =>
+    setEditingCell({ ...editingCell, teacher: e.target.value })
+  }
+  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+>
+  <option value="">Select Teacher</option>
+
+  {teachers.map(t => (
+    <option key={t._id} value={t.personalInfo.fullName}>
+      {t.personalInfo.fullName} ({t.professionalInfo.subjectDealing})
+    </option>
+  ))}
+</select>
+
                 </div>
                 
                 <div>
@@ -546,8 +897,9 @@ const Timetable = () => {
               <div className="mt-8 flex justify-between">
                 <button
                   onClick={() => handleDeleteClass(editingCell.originalDay, editingCell.originalPeriod)}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium"
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-medium flex items-center gap-2"
                 >
+                  <FaTrash />
                   Delete Class
                 </button>
                 
@@ -606,7 +958,7 @@ const Timetable = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     {periods.map(period => (
-                      <option key={period.id} value={period.id}>{period.name} ({period.time})</option>
+                      <option key={period.id} value={period.id}>Period {period.name.replace('P', '')} ({period.time})</option>
                     ))}
                   </select>
                 </div>
@@ -627,13 +979,20 @@ const Timetable = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Teacher</label>
-                  <input
-                    type="text"
-                    value={newClass.teacher}
-                    onChange={(e) => setNewClass({...newClass, teacher: e.target.value})}
-                    placeholder="Teacher's name"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                 <select
+  value={newClass.teacher}
+  onChange={(e) => setNewClass({ ...newClass, teacher: e.target.value })}
+  className="w-full px-4 py-2 border rounded-lg"
+>
+  <option value="">Select Teacher</option>
+
+  {teachers.map(t => (
+    <option key={t._id} value={t.personalInfo.fullName}>
+      {t.personalInfo.fullName} ({t.professionalInfo.subjectDealing})
+    </option>
+  ))}
+</select>
+
                 </div>
                 
                 <div>
@@ -666,35 +1025,8 @@ const Timetable = () => {
           </div>
         )}
 
-        {/* Statistics */}
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <h3 className="font-semibold text-gray-800 mb-4">Schedule Statistics</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600">
-                {Object.values(schedule).reduce((total, day) => total + Object.keys(day || {}).length, 0)}
-              </div>
-              <div className="text-gray-600">Total Classes</div>
-            </div>
-            
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">{days.length}</div>
-              <div className="text-gray-600">Days</div>
-            </div>
-            
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-600">{periods.length}</div>
-              <div className="text-gray-600">Periods</div>
-            </div>
-            
-            <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600">
-                {new Set(Object.values(schedule).flatMap(day => Object.values(day || {}).map(c => c.subject))).size}
-              </div>
-              <div className="text-gray-600">Unique Subjects</div>
-            </div>
-          </div>
-        </div>
+        {/* Footer */}
+        <Footer />
       </div>
     </div>
   );

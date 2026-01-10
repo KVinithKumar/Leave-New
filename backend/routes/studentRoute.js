@@ -6,8 +6,12 @@ import {
   updateStudent,
   deleteStudent,
 } from "../controllers/studentController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+// Apply protection to all routes
+router.use(protect);
 
 router.post("/", createStudent);
 router.get("/", getAllStudents);

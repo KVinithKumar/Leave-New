@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Header from '../components/Header';
 import BackButton from "../components/BackButton";
+import html2pdf from "html2pdf.js";
 
 
 
@@ -64,71 +65,10 @@ const isValidAadhar = (aadhar) => {
 };
 
 // Default mobile number for all students and guardians
-const DEFAULT_MOBILE_NUMBER = '9603969896';
+const DEFAULT_MOBILE_NUMBER = '';
 
-// Mock data with class/section/roll number
-const MOCK_STUDENTS = [
-  { 
-    id: 1, 
-    name: 'Lithish', 
-    class: '6', 
-    section: 'A', 
-    rollNo: '101', 
-    photo: null, // Changed to null to allow live capture
-    parentName: 'Kannani', 
-    parentMobile: cleanMobile(DEFAULT_MOBILE_NUMBER), 
-    parentEmail: 'kannani.parent@email.com',
-    aadhar: '1234 5678 9012', 
-    address: '45 Gandhi Nagar, Main Road\nTrichy, Tamil Nadu - 620001\nIndia',
-    dob: '2013-05-15', 
-    bloodGroup: 'O+', 
-    hostelWing: 'North Wing', 
-    roomNo: '201',
-    emergencyContact: cleanMobile(DEFAULT_MOBILE_NUMBER),
-    localGuardian: 'Mr. Rajesh Kumar (Uncle)',
-    localGuardianContact: cleanMobile(DEFAULT_MOBILE_NUMBER)
-  },
-  { 
-    id: 2, 
-    name: 'Priya Sharma', 
-    class: '9', 
-    section: 'B', 
-    rollNo: '205', 
-    photo: null,
-    parentName: 'Mrs. Sharma', 
-    parentMobile: cleanMobile(DEFAULT_MOBILE_NUMBER), 
-    parentEmail: 'sharma.parent@email.com',
-    aadhar: '2345 6789 0123', 
-    address: '456 Park Street, Andheri West\nMumbai, Maharashtra - 400001',
-    dob: '2010-08-22', 
-    bloodGroup: 'A+', 
-    hostelWing: 'South Wing', 
-    roomNo: '105',
-    emergencyContact: cleanMobile(DEFAULT_MOBILE_NUMBER),
-    localGuardian: 'Mr. Arun Mehta (Cousin)',
-    localGuardianContact: cleanMobile(DEFAULT_MOBILE_NUMBER)
-  },
-  { 
-    id: 3, 
-    name: 'Amit Patel', 
-    class: '11', 
-    section: 'C', 
-    rollNo: '312', 
-    photo: null,
-    parentName: 'Mr. Patel', 
-    parentMobile: cleanMobile(DEFAULT_MOBILE_NUMBER), 
-    parentEmail: 'patel.parent@email.com',
-    aadhar: '3456 7890 1234', 
-    address: '789 Nehru Road, Connaught Place\nNew Delhi - 110001',
-    dob: '2008-03-10', 
-    bloodGroup: 'B+', 
-    hostelWing: 'East Wing', 
-    roomNo: '308',
-    emergencyContact: cleanMobile(DEFAULT_MOBILE_NUMBER),
-    localGuardian: 'Mr. Sunil Verma (Family Friend)',
-    localGuardianContact: cleanMobile(DEFAULT_MOBILE_NUMBER)
-  },
-];
+
+
 
 const GUARDIAN_TYPES = [
   { id: 'parent', label: 'Parent', description: 'Father/Mother' },
@@ -224,6 +164,7 @@ const CameraCapture = ({ onCapture, onClose, title = "Capture Photo", type = "gu
     setIsFrontCamera(!isFrontCamera);
   };
 
+
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-md w-full" style={{ backgroundColor: COLOR_SCHEME.background.card }}>
@@ -305,9 +246,8 @@ const StudentLeaveRequest = () => {
   const [purpose, setPurpose] = useState('');
   const [notes, setNotes] = useState('');
   const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState('');
+  
   const [verificationStatus, setVerificationStatus] = useState('');
-  const [filteredStudents, setFilteredStudents] = useState(MOCK_STUDENTS);
   const [gatePass, setGatePass] = useState(null);
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSection, setSelectedSection] = useState('');
@@ -316,36 +256,21 @@ const StudentLeaveRequest = () => {
   const [cameraType, setCameraType] = useState('guardian'); // 'student' or 'guardian'
   const [imageLoadErrors, setImageLoadErrors] = useState({});
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
-  const [showOTP, setShowOTP] = useState(false);
-  const [generatedOTP, setGeneratedOTP] = useState('');
-  
+ const schoolCopyRef = useRef(null);
+const parentCopyRef = useRef(null);
+
+ 
+  const [students, setStudents] = useState([]);
+const [filteredStudents, setFilteredStudents] = useState([]);
+const [loadingStudents, setLoadingStudents] = useState(true);
+const [studentError, setStudentError] = useState("");
+
   // Validation states
   const [mobileError, setMobileError] = useState('');
   const [aadharError, setAadharError] = useState('');
   
   // Guardian management states
-  const [guardianList, setGuardianList] = useState([
-    {
-      id: 1,
-      name: 'Kannani',
-      relationship: 'Mother',
-      mobile: DEFAULT_MOBILE_NUMBER,
-      email: 'kannani.parent@email.com',
-      aadhar: '1234 5678 9012',
-      address: '45 Gandhi Nagar, Main Road\nTrichy, Tamil Nadu - 620001',
-      type: 'parent'
-    },
-    {
-      id: 2,
-      name: 'Rajesh Kumar',
-      relationship: 'Uncle',
-      mobile: DEFAULT_MOBILE_NUMBER,
-      email: 'rajesh.uncle@email.com',
-      aadhar: '9876 5432 1098',
-      address: '123 School Hostel Area\nChennai, Tamil Nadu - 600001',
-      type: 'relative'
-    }
-  ]);
+  const [guardianList, setGuardianList] = useState([]);
   const [selectedGuardian, setSelectedGuardian] = useState(null);
   
   // New guardian form state
@@ -358,11 +283,51 @@ const StudentLeaveRequest = () => {
     relationship: ''
   });
 
-  const uniqueClasses = [...new Set(MOCK_STUDENTS.map(s => s.class))].sort();
-  const uniqueSections = [...new Set(MOCK_STUDENTS.map(s => s.section))].sort();
+  const uniqueClasses = [...new Set(students.map(s => s.class))];
+  const uniqueSections = [...new Set(students.map(s => s.section))];
+useEffect(() => {
+  const fetchStudents = async () => {
+    try {
+      setLoadingStudents(true);
+
+      const res = await fetch("/api/students");
+      const data = await res.json();
+
+      const formatted = data.map((s) => ({
+        id: s._id,
+        name: s.name,
+        class: s.class,
+        section: s.section,
+        rollNo: s.roll,
+        photo: null,
+        parentName: s.fatherName,
+        parentMobile: s.fathermobile,
+        parentEmail: s.email,
+        aadhar: s.fatheraadhar || "",
+        address: s.address,
+        dob: s.dob,
+        bloodGroup: "N/A",
+        hostelWing: s.daysschoolarhostel === "hostel" ? "Hostel Wing" : "",
+        roomNo: s.roomno || "",
+        emergencyContact: s.phone,
+        localGuardian: s.fatherName,
+        localGuardianContact: s.fathermobile,
+      }));
+
+      setStudents(formatted);
+      setFilteredStudents(formatted);
+    } catch {
+      setStudentError("Failed to load students");
+    } finally {
+      setLoadingStudents(false);
+    }
+  };
+
+  fetchStudents();
+}, []);
 
   useEffect(() => {
-    let filtered = MOCK_STUDENTS;
+    let filtered = students;
     
     if (selectedClass) {
       filtered = filtered.filter(s => s.class === selectedClass);
@@ -380,7 +345,8 @@ const StudentLeaveRequest = () => {
     }
     
     setFilteredStudents(filtered);
-  }, [selectedClass, selectedSection, searchTerm]);
+ }, [students, selectedClass, selectedSection, searchTerm]);
+
 
   useEffect(() => {
     if (selectedStudent) {
@@ -478,6 +444,36 @@ const StudentLeaveRequest = () => {
       setMobileError('');
     }
   };
+const handleDownloadGatePass = async (type) => {
+  const ref = type === "school" ? schoolCopyRef : parentCopyRef;
+
+  await waitForElement(ref);
+
+  const element = ref.current;
+
+  if (!element) {
+    alert("Gate pass not ready yet");
+    return;
+  }
+
+  html2pdf()
+    .set({
+      margin: 0.3,
+      filename: `${gatePass.id}-${type}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+      },
+      jsPDF: {
+        unit: "in",
+        format: "a4",
+        orientation: "portrait",
+      },
+    })
+    .from(element)
+    .save();
+};
 
   // Handle Aadhar number input with validation
   const handleAadharChange = (value) => {
@@ -494,6 +490,14 @@ const StudentLeaveRequest = () => {
       setAadharError('');
     }
   };
+const waitForElement = (ref) =>
+  new Promise((resolve) => {
+    const check = () => {
+      if (ref.current) resolve();
+      else requestAnimationFrame(check);
+    };
+    check();
+  });
 
   const handleSaveGuardian = () => {
     // Check if all required fields are filled
@@ -571,36 +575,49 @@ const StudentLeaveRequest = () => {
     }
   };
 
-  const handleSendOTP = () => {
-    if (!selectedGuardian?.mobile) {
-      alert('Please select or add a guardian first');
-      return;
-    }
-    
-    // Generate a 6-digit OTP
-    const newOTP = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedOTP(newOTP);
-    setOtpSent(true);
-    setShowOTP(false); // Hide OTP on screen
-    
-    // Simulate sending OTP to parent
-    console.log(`📱 OTP sent to ${selectedGuardian.mobile}: ${newOTP}`);
-    
-    // In a real app, you would send this via SMS API
-    alert(`OTP has been sent to ${selectedGuardian.mobile}. Please ask the parent for the OTP.`);
-    setVerificationStatus('OTP sent to guardian');
-  };
+const handleSendOTP = async () => {
+  if (!selectedGuardian?.mobile) {
+    alert("Guardian mobile required");
+    return;
+  }
 
-  const handleVerifyOTP = () => {
-    if (otp === generatedOTP) {
-      setVerificationStatus('OTP verified and guardian confirmed');
-      setTimeout(() => {
-        handleGenerateGatePass();
-      }, 500);
-    } else {
-      alert('Invalid OTP. Please enter the correct OTP sent to parent.');
-    }
-  };
+
+  const loadWidget = () =>
+    new Promise((resolve, reject) => {
+      if (window.initSendOTP) return resolve();
+      const s = document.createElement("script");
+      s.src = "https://verify.msg91.com/otp-provider.js";
+      s.onload = resolve;
+      s.onerror = reject;
+      document.body.appendChild(s);
+    });
+
+  try {
+    await loadWidget();
+
+
+window.initSendOTP({
+widgetId: "3661676e3670303334363635",
+tokenAuth: "486607T1fMxmGl695e7554P1",
+  identifier: `+91${selectedStudent.parentMobile}`,
+  country: "IN",
+  success: () => {
+    setOtpSent(true);
+    setVerificationStatus("verified");
+   
+  },
+  failure: (err) => {
+    console.error(err);
+    alert("OTP verification failed");
+  },
+    });
+  } catch (err) {
+    console.error(err);
+    alert("OTP service failed");
+  }
+};
+
+
 
   // Helper to convert data URL to Blob
   const dataURLtoBlob = (dataURL) => {
@@ -623,7 +640,7 @@ const StudentLeaveRequest = () => {
   const handleGenerateGatePass = async () => {
     const timestamp = new Date();
     const passId = `GP${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}${String(timestamp.getDate()).padStart(2, '0')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
-    
+  
     const newGatePass = {
       id: passId,
       studentName: selectedStudent.name,
@@ -666,6 +683,8 @@ const StudentLeaveRequest = () => {
     formData.append('leaveReason', PURPOSE_OPTIONS.find(p => p.id === purpose)?.label || purpose);
     formData.append('startDate', departureDate);
     formData.append('endDate', returnDate);
+  formData.append("studentClass", selectedStudent.class);
+formData.append("studentSection", selectedStudent.section);
 
     // Append photos if they are new (base64 data URLs)
     if (studentPhoto && studentPhoto.startsWith('data:')) {
@@ -680,7 +699,7 @@ const StudentLeaveRequest = () => {
 
     try {
       // Send to backend
-      const response = await fetch('http://localhost:5000/api/leave-request/submit', {
+      const response = await fetch('/api/leave-request/submit', {
         method: 'POST',
         body: formData
       });
@@ -1522,7 +1541,7 @@ Purpose: ${gatePass?.purpose}
           <div>
             <button
               onClick={handleSendOTP}
-              disabled={otpSent}
+            
               className={`w-full py-3 rounded-lg font-medium mb-4 transition-all ${
                 otpSent 
                   ? 'bg-gray-100 text-gray-500'
@@ -1545,67 +1564,7 @@ Purpose: ${gatePass?.purpose}
               {otpSent ? 'OTP Sent to Parent' : 'Send OTP to parent'}
             </button>
             
-            {otpSent && (
-              <div className="animate-fadeIn">
-                <div className="mb-4 p-3 rounded-lg border" style={{ 
-                  borderColor: COLOR_SCHEME.secondary.light,
-                  backgroundColor: `${COLOR_SCHEME.secondary.main}10` 
-                }}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">OTP sent to:</p>
-                      <p className="font-medium">{selectedGuardian?.mobile}</p>
-                    </div>
-                    <button
-                      onClick={() => setShowOTP(!showOTP)}
-                      className="flex items-center space-x-1 text-sm"
-                    >
-                      {showOTP ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      <span>{showOTP ? 'Hide OTP' : 'Show OTP'}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <label className="block text-sm font-medium text-gray-700 mb-2">Enter OTP from Guardian</label>
-                <div className="space-y-3">
-                  <div className="flex space-x-3">
-                    <input
-                      type="text"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      placeholder="Enter OTP"
-                      className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-center font-medium text-lg tracking-widest focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                    />
-                    <button
-                      onClick={handleVerifyOTP}
-                      className="px-6 text-white rounded-lg hover:shadow-md font-medium transition-all"
-                      style={{ backgroundColor: COLOR_SCHEME.secondary.main }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = COLOR_SCHEME.secondary.dark}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = COLOR_SCHEME.secondary.main}
-                    >
-                      Verify
-                    </button>
-                  </div>
-                  
-                  {showOTP && (
-                    <div className="p-3 rounded-lg text-center border" style={{ 
-                      borderColor: COLOR_SCHEME.primary.light,
-                      backgroundColor: `${COLOR_SCHEME.primary.main}05` 
-                    }}>
-                      <p className="text-sm text-gray-600 mb-1">Generated OTP (For testing only):</p>
-                      <p className="font-mono text-lg font-bold" style={{ color: COLOR_SCHEME.primary.main }}>
-                        {generatedOTP}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">⚠️ In production, OTP is only sent to parent's phone</p>
-                    </div>
-                  )}
-                  
-                  <p className="text-xs text-gray-500 mt-2 text-center">
-                    OTP has been sent to Parents mobile. Ask the guardian for the OTP to verify.
-                  </p>
-                </div>
-              </div>
-            )}
+           
           </div>
         </div>
 
@@ -1618,7 +1577,9 @@ Purpose: ${gatePass?.purpose}
           </button>
           <button
             onClick={handleGenerateGatePass}
-            disabled={!verificationStatus.includes('verified')}
+            disabled={!verificationStatus.includes("verified")}
+
+
             className={`px-6 py-2.5 rounded-lg font-medium transition-all ${
               verificationStatus.includes('verified')
                 ? 'text-white hover:shadow-md'
@@ -2003,12 +1964,15 @@ Purpose: ${gatePass?.purpose}
               >
                 {gatePassPrinted.school ? '✓ Printed' : 'Print'}
               </button>
-              <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm transition-all">
+              <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm transition-all "  onClick={() => handleDownloadGatePass("school")}>
                 Download
               </button>
             </div>
           </div>
-          <GatePassPreview isParentCopy={false} />
+          <div ref={schoolCopyRef}>
+  <GatePassPreview isParentCopy={false} />
+</div>
+
         </div>
 
         <div>
@@ -2043,7 +2007,10 @@ Purpose: ${gatePass?.purpose}
               </button>
             </div>
           </div>
-          <GatePassPreview isParentCopy={true} />
+         <div ref={parentCopyRef}>
+  <GatePassPreview isParentCopy={true} />
+</div>
+
         </div>
       </div>
 
@@ -2058,8 +2025,7 @@ Purpose: ${gatePass?.purpose}
             setGuardianPhoto(null);
             setStudentPhoto(null);
             setOtpSent(false);
-            setOtp('');
-            setGeneratedOTP('');
+         
             setVerificationStatus('');
             setGatePassPrinted({ school: false, parent: false });
             setGuardianType('');

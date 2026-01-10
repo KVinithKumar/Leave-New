@@ -81,6 +81,17 @@ export const createStudent = async (req, res) => {
   }
 );
 
+    // LOGGING
+    if (req.user) {
+      await logAction({
+        action: "CREATE_STUDENT",
+        userId: req.user._id,
+        role: req.user.role,
+        email: req.user.email,
+        ip: req.ip,
+        details: { name: savedStudent.basicInfo.fullName, roll: savedStudent.basicInfo.rollNumber },
+      });
+    }
 
     res.status(201).json(savedStudent);
 
@@ -96,7 +107,27 @@ export const createStudent = async (req, res) => {
 ========================== */
 export const getAllStudents = async (req, res) => {
   try {
-    const students = await Student.find().lean();
+    const { search, class: studentClass, section } = req.query;
+    let query = {};
+
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+      query.$or = [
+        { "basicInfo.fullName": searchRegex },
+        { "basicInfo.rollNumber": searchRegex },
+        { "contactInfo.email": searchRegex },
+      ];
+    }
+
+    if (studentClass) {
+      query["basicInfo.class"] = studentClass;
+    }
+
+    if (section) {
+      query["basicInfo.section"] = section;
+    }
+
+    const students = await Student.find(query).lean();
 
     const formatted = students.map(s => ({
       _id: s._id,
@@ -213,6 +244,24 @@ export const updateStudent = async (req, res) => {
       }
     );
 
+    // LOGGING
+    if (req.user) {
+      await logAction({
+        action: "UPDATE_STUDENT",
+        userId: req.user._id,
+        role: req.user.role,
+        email: req.user.email,
+        ip: req.ip,
+        details: { 
+          name: updated.basicInfo.fullName, 
+          roll: updated.basicInfo.rollNumber,
+          oldRoll,
+          oldClass,
+          oldSection
+        },
+      });
+    }
+
     res.json(updated);
 
   } catch (err) {
@@ -236,6 +285,18 @@ export const deleteStudent = async (req, res) => {
 
     // 🔹 DELETE STUDENT
     await Student.findByIdAndDelete(req.params.id);
+
+    // LOGGING
+    if (req.user) {
+      await logAction({
+        action: "DELETE_STUDENT",
+        userId: req.user._id,
+        role: req.user.role,
+        email: req.user.email,
+        ip: req.ip,
+        details: { name: student.basicInfo.fullName, roll: student.basicInfo.rollNumber },
+      });
+    }
 
     res.json({ message: "Student and attendance deleted successfully" });
 

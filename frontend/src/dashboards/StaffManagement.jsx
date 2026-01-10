@@ -35,7 +35,8 @@ const StaffManagement = () => {
     teacherType: 'primary',
     employeeId: '',
     emergencyContact: '',
-    profilePhoto: null
+    profilePhoto: null,
+    password: ''
   });
 
   const location = useLocation();
@@ -43,6 +44,15 @@ const StaffManagement = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [profilePreview, setProfilePreview] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Handle search from navigation state
+  useEffect(() => {
+    if (location.state?.search) {
+      setSearchTerm(location.state.search);
+      setActiveTab('manage');
+    }
+  }, [location.state]);
+
   const [selectedTeachers, setSelectedTeachers] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [teacherToDelete, setTeacherToDelete] = useState(null);
@@ -72,9 +82,14 @@ useEffect(() => {
   fetchTeachers();
 }, []);
 
-const fetchTeachers = async () => {
+const fetchTeachers = async (query = "") => {
   try {
-    const res = await fetch("/api/staff");
+    const url = query ? `http://localhost:5002/api/staff?search=${encodeURIComponent(query)}` : "http://localhost:5002/api/staff";
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      }
+    });
     const data = await res.json();
     setTeachers(data);
   } catch (err) {
@@ -84,27 +99,29 @@ const fetchTeachers = async () => {
 
   const experienceOptions = ['0-5 years', '5-10 years', '10-15 years', '15+ years'];
 
-  // Filter teachers based on search and filters
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchTeachers(searchTerm);
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
+
+  // Client-side filtering for other filters (Teacher Type, Experience, etc.)
   useEffect(() => {
     let results = teachers.filter(teacher => {
-      const matchesSearch =
-  teacher.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  teacher.employeeId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  teacher.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  teacher.subjectSpecialization?.toLowerCase().includes(searchTerm.toLowerCase());
-
       const matchesSpecialization = 
         !filters.specialization || teacher.subjectSpecialization === filters.specialization;
       
-     const matchesTeacherType =
-  !filters.teacherType ||
-  teacher.teacherType === filters.teacherType.toLowerCase();
+      const matchesTeacherType =
+        !filters.teacherType ||
+        teacher.teacherType === filters.teacherType.toLowerCase();
 
-   const matchesExperience =
-  !filters.experience ||
-  Number(teacher.experience) >= Number(filters.experience.split('-')[0]);
+      const matchesExperience =
+        !filters.experience ||
+        Number(teacher.experience) >= Number(filters.experience.split('-')[0]);
 
-      return matchesSearch && matchesSpecialization && matchesTeacherType && matchesExperience;
+      return matchesSpecialization && matchesTeacherType && matchesExperience;
     });
 
     if (sortConfig.key) {
@@ -120,7 +137,7 @@ const fetchTeachers = async () => {
     }
 
     setFilteredTeachers(results);
-  }, [searchTerm, teachers, filters, sortConfig]);
+  }, [teachers, filters, sortConfig]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -193,18 +210,24 @@ const handleSubmit = async (e) => {
 
   try {
     const url = editingId
-      ? `/api/staff/${editingId}`
-      : "/api/staff";
+      ? `http://localhost:5002/api/staff/${editingId}`
+      : "http://localhost:5002/api/staff";
 
     const method = editingId ? "PUT" : "POST";
 
     const res = await fetch(url, {
       method,
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      },
       body: JSON.stringify(formData),
     });
 
-    if (!res.ok) throw new Error("Save failed");
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "Save failed");
+    }
 
     await fetchTeachers();
     setShowSuccess(true);
@@ -218,7 +241,8 @@ const handleSubmit = async (e) => {
     }, 1500);
 
   } catch (err) {
-    alert("Failed to save teacher");
+    console.error(err);
+    alert(err.message || "Failed to save teacher");
   }
 };
 
@@ -238,7 +262,7 @@ const handleSubmit = async (e) => {
 
  const handleDeleteConfirm = async () => {
   try {
-    await fetch(`/api/staff/${teacherToDelete._id}`, {
+    await fetch(`http://localhost:5002/api/staff/${teacherToDelete._id}`, {
       method: "DELETE",
     });
 
@@ -253,7 +277,7 @@ const handleSubmit = async (e) => {
 
 const handleBulkDelete = async () => {
   try {
-    await fetch("/api/staff/bulk-delete", {
+    await fetch("http://localhost:5002/api/staff/bulk-delete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ids: selectedTeachers }),
@@ -586,6 +610,21 @@ const handleEdit = (teacher) => {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                   placeholder="Auto-generated if empty"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Login Password *
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required={!editingId} // Required only for new staff
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                  placeholder={editingId ? "Leave blank to keep current" : "Set login password"}
                 />
               </div>
             </div>

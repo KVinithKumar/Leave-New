@@ -19,10 +19,20 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const logout = () => {
-    // Clear any session/token here
-    localStorage.clear();
-    navigate("/select-role");
+  const logout = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await fetch("http://localhost:5002/api/auth/logout", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (err) {
+      console.error("Logout API call failed:", err);
+    } finally {
+      // Clear any session/token here
+      localStorage.clear();
+      navigate("/select-role");
+    }
   };
 
   const menuItems = [

@@ -69,6 +69,17 @@ export const updateAttendance = async (req, res) => {
     attendance.status = status;
     await attendance.save();
 
+    if (req.user) {
+        await logAction({
+          action: "UPDATE_ATTENDANCE",
+          userId: req.user._id,
+          role: req.user.role,
+          email: req.user.email,
+          ip: req.ip,
+          details: { studentId: attendance.studentId, date: attendance.date, status },
+        });
+    }
+
     res.json(attendance);
   } catch (err) {
     res.status(400).json({ message: err.message });

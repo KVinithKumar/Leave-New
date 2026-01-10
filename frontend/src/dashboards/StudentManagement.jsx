@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer"; // Footer component imported
 import BackButton from "../components/BackButton";
@@ -32,6 +33,31 @@ export default function Students() {
   const [selectedSection, setSelectedSection] = useState("");
   const [searchText, setSearchText] = useState("");
   const [filteredStudents, setFilteredStudents] = useState([]);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.search) {
+      setSearchText(location.state.search);
+      // Trigger fetch immediately when search comes from navigation
+      const params = new URLSearchParams();
+      params.append("search", location.state.search);
+      fetch(`http://localhost:5002/api/students?${params.toString()}`, {
+        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const normalized = data.map(s => ({
+          ...s,
+          attendance: typeof s.attendance === "string" ? s.attendance : `${s.attendance}%`,
+        }));
+        setStudentsData(normalized);
+        setFilteredStudents(normalized);
+      });
+    } else {
+        fetchStudents();
+    }
+  }, [location.state]);
+
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -89,35 +115,42 @@ export default function Students() {
 //============FEtching Routes ==================
 const fetchStudents = async () => {
   try {
-    const res = await fetch("http://localhost:5000/api/students");
+    const params = new URLSearchParams();
+    if (searchText) params.append("search", searchText);
+    if (selectedClass) params.append("class", selectedClass);
+    if (selectedSection) params.append("section", selectedSection);
+
+    const res = await fetch(`http://localhost:5002/api/students?${params.toString()}`, {
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      }
+    });
     const data = await res.json();
-    setStudentsData(data);
-    setFilteredStudents(data);
+    
+    // Normalize if needed, consistent with Students.jsx
+    const normalized = data.map(s => ({
+      ...s,
+      attendance: typeof s.attendance === "string"
+        ? s.attendance
+        : `${s.attendance}%`,
+    }));
+
+    setStudentsData(normalized);
+    setFilteredStudents(normalized);
   } catch (err) {
     console.error("Fetch students failed", err);
   }
 };
+
 useEffect(() => {
-  fetchStudents();
-}, []);
+  const timer = setTimeout(() => {
+    fetchStudents();
+  }, 500);
+  return () => clearTimeout(timer);
+}, [searchText, selectedClass, selectedSection]);
 
-  // ================= HANDLERS =================
   const handleSearch = () => {
-    let result = studentsData.filter((student) => {
-      const matchesClass = !selectedClass || student.class === selectedClass;
-      const matchesSection = !selectedSection || student.section === selectedSection;
-      const matchesSearch = !searchText || 
-        student.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        student.roll.includes(searchText) ||
-        student.email.toLowerCase().includes(searchText.toLowerCase());
-      
-      return matchesClass && matchesSection && matchesSearch;
-    });
-
-    // Sort by roll number by default
-    result = [...result].sort((a, b) => a.roll.localeCompare(b.roll));
-
-    setFilteredStudents(result);
+    fetchStudents();
   };
 
   const handleReset = () => {
@@ -162,9 +195,12 @@ if (
 }
 
   try {
-    const res = await fetch("http://localhost:5000/api/students", {
+    const res = await fetch("http://localhost:5002/api/students", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      },
       body: JSON.stringify(formData),
     });
 
@@ -208,10 +244,13 @@ if (
  const handleUpdateStudent = async () => {
   try {
     const res = await fetch(
-      `http://localhost:5000/api/students/${editingStudent._id}`,
+      `http://localhost:5002/api/students/${editingStudent._id}`,
       {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
         body: JSON.stringify(formData),
       }
     );
@@ -230,8 +269,11 @@ if (
 
  const handleDeleteStudent = async (id) => {
   try {
-    await fetch(`http://localhost:5000/api/students/${id}`, {
+    await fetch(`http://localhost:5002/api/students/${id}`, {
       method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      }
     });
 
     await fetchStudents();

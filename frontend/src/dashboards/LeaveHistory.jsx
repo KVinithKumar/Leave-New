@@ -10,511 +10,134 @@ import {
   TrendingUp, BarChart, PieChart, ArrowUpRight, ArrowDownRight
 } from 'lucide-react';
 
-// Mock leave history data
-const LEAVE_HISTORY_DATA = [
-  {
-    id: 'GP2025-0115-001',
-    studentId: 1,
-    studentName: 'Lithish',
-    class: '6',
-    section: 'A',
-    rollNo: '101',
-    guardianName: 'Kannani',
-    contact: '+91 98765 43210',
-    purpose: 'Medical Leave',
-    departureDate: '2025-01-15',
-    departureTime: '10:30 AM',
-    returnDate: '2025-01-16',
-    returnTime: '05:00 PM',
-    status: 'completed',
-    issuedBy: 'saranya',
-    issuedDate: '2025-01-14',
-    issuedTime: '11:02:39 PM',
-    gatePassPrinted: true,
-    notes: 'Fever and doctor appointment'
-  },
-  {
-    id: 'GP2025-0203-002',
-    studentId: 1,
-    studentName: 'Lithish',
-    class: '6',
-    section: 'A',
-    rollNo: '101',
-    guardianName: 'Kannani',
-    contact: '+91 98765 43210',
-    purpose: 'Family Function',
-    departureDate: '2025-02-03',
-    departureTime: '02:00 PM',
-    returnDate: '2025-02-05',
-    returnTime: '06:00 PM',
-    status: 'completed',
-    issuedBy: 'saranya',
-    issuedDate: '2025-02-02',
-    issuedTime: '10:15:22 AM',
-    gatePassPrinted: true,
-    notes: 'Cousin wedding'
-  },
-  {
-    id: 'GP2025-0310-003',
-    studentId: 1,
-    studentName: 'Lithish',
-    class: '6',
-    section: 'A',
-    rollNo: '101',
-    guardianName: 'Mr. Kannani',
-    contact: '+91 98765 43210',
-    purpose: 'Emergency',
-    departureDate: '2025-03-10',
-    departureTime: '11:00 AM',
-    returnDate: '2025-03-11',
-    returnTime: '04:30 PM',
-    status: 'completed',
-    issuedBy: 'saranya',
-    issuedDate: '2025-03-10',
-    issuedTime: '09:45:10 AM',
-    gatePassPrinted: true,
-    notes: 'Family emergency'
-  },
-  {
-    id: 'GP2025-0412-004',
-    studentId: 2,
-    studentName: 'Priya Sharma',
-    class: '9',
-    section: 'B',
-    rollNo: '205',
-    guardianName: 'Mrs. Sharma',
-    contact: '+91 98765 43211',
-    purpose: 'Medical Leave',
-    departureDate: '2025-04-12',
-    departureTime: '09:00 AM',
-    returnDate: '2025-04-13',
-    returnTime: '05:00 PM',
-    status: 'completed',
-    issuedBy: 'saranya',
-    issuedDate: '2025-04-11',
-    issuedTime: '03:20:15 PM',
-    gatePassPrinted: true,
-    notes: 'Dental appointment'
-  },
-  {
-    id: 'GP2025-0518-005',
-    studentId: 2,
-    studentName: 'Priya Sharma',
-    class: '9',
-    section: 'B',
-    rollNo: '205',
-    guardianName: 'Mrs. Sharma',
-    contact: '+91 98765 43211',
-    purpose: 'Vacation',
-    departureDate: '2025-05-18',
-    departureTime: '03:00 PM',
-    returnDate: '2025-05-25',
-    returnTime: '06:00 PM',
-    status: 'completed',
-    issuedBy: 'saranya',
-    issuedDate: '2025-05-17',
-    issuedTime: '11:30:45 AM',
-    gatePassPrinted: true,
-    notes: 'Summer vacation trip'
-  },
-  {
-    id: 'GP2025-0605-006',
-    studentId: 3,
-    studentName: 'Amit Patel',
-    class: '11',
-    section: 'C',
-    rollNo: '312',
-    guardianName: 'Mr. Patel',
-    contact: '+91 98765 43212',
-    purpose: 'Personal Reason',
-    departureDate: '2025-06-05',
-    departureTime: '04:00 PM',
-    returnDate: '2025-06-06',
-    returnTime: '05:30 PM',
-    status: 'completed',
-    issuedBy: 'saranya',
-    issuedDate: '2025-06-05',
-    issuedTime: '02:15:30 PM',
-    gatePassPrinted: true,
-    notes: 'Personal work'
-  },
-  {
-    id: 'GP2025-0710-007',
-    studentId: 3,
-    studentName: 'Amit Patel',
-    class: '11',
-    section: 'C',
-    rollNo: '312',
-    guardianName: 'Mr. Patel',
-    contact: '+91 98765 43212',
-    purpose: 'Family Function',
-    departureDate: '2025-07-10',
-    departureTime: '10:00 AM',
-    returnDate: '2025-07-12',
-    returnTime: '06:00 PM',
-    status: 'completed',
-    issuedBy: 'saranya',
-    issuedDate: '2025-07-09',
-    issuedTime: '04:45:20 PM',
-    gatePassPrinted: true,
-    notes: 'Brother engagement'
-  },
-  {
-    id: 'GP2025-0815-008',
-    studentId: 1,
-    studentName: 'Lithish',
-    class: '6',
-    section: 'A',
-    rollNo: '101',
-    guardianName: 'Kannani',
-    contact: '+91 98765 43210',
-    purpose: 'Medical Leave',
-    departureDate: '2025-08-15',
-    departureTime: '11:00 AM',
-    returnDate: '2025-08-16',
-    returnTime: '04:00 PM',
-    status: 'completed',
-    issuedBy: 'saranya',
-    issuedDate: '2025-08-14',
-    issuedTime: '10:30:15 AM',
-    gatePassPrinted: true,
-    notes: 'Eye checkup'
-  },
-  {
-    id: 'GP2025-0912-009',
-    studentId: 2,
-    studentName: 'Priya Sharma',
-    class: '9',
-    section: 'B',
-    rollNo: '205',
-    guardianName: 'Mrs. Sharma',
-    contact: '+91 98765 43211',
-    purpose: 'Medical Leave',
-    departureDate: '2025-09-12',
-    departureTime: '09:30 AM',
-    returnDate: '2025-09-13',
-    returnTime: '05:30 PM',
-    status: 'active',
-    issuedBy: 'saranya',
-    issuedDate: '2025-09-11',
-    issuedTime: '03:15:45 PM',
-    gatePassPrinted: true,
-    notes: 'Fever'
-  },
-  {
-    id: 'GP2025-1020-010',
-    studentId: 3,
-    studentName: 'Amit Patel',
-    class: '11',
-    section: 'C',
-    rollNo: '312',
-    guardianName: 'Mr. Patel',
-    contact: '+91 98765 43212',
-    purpose: 'Vacation',
-    departureDate: '2025-10-20',
-    departureTime: '02:00 PM',
-    returnDate: '2025-10-27',
-    returnTime: '06:00 PM',
-    status: 'upcoming',
-    issuedBy: 'saranya',
-    issuedDate: '2025-10-19',
-    issuedTime: '11:20:30 AM',
-    gatePassPrinted: false,
-    notes: 'Diwali vacation'
-  },
-];
 
-// Student complete information
-const STUDENT_COMPLETE_DATA = [
-  {
-    id: 1,
-    name: 'Lithish',
-    admissionNo: '2024001',
-    class: '6',
-    section: 'A',
-    rollNo: '101',
-    photo: 'https://randomuser.me/api/portraits/boys/32.jpg',
-    dob: '2013-05-15',
-    age: '12',
-    gender: 'Male',
-    bloodGroup: 'O+',
-    religion: 'Hindu',
-    nationality: 'Indian',
-    
-    // Parent Information
-    fatherName: 'Kannani',
-    fatherOccupation: 'Software Engineer',
-    fatherContact: '+91 98765 43210',
-    fatherEmail: 'kannani.father@email.com',
-    fatherAadhar: '1234 5678 9012',
-    
-    motherName: 'Lakshmi',
-    motherOccupation: 'Teacher',
-    motherContact: '+91 98765 43213',
-    motherEmail: 'lakshmi.mother@email.com',
-    motherAadhar: '2345 6789 0123',
-    
-    // Contact Information
-    primaryContact: '+91 98765 43210',
-    secondaryContact: '+91 98765 43213',
-    email: 'lithish.student@school.edu.in',
-    emergencyContact: '+91 98765 43214',
-    
-    // Address Information
-    address: '123 Gandhi Nagar, Chennai, Tamil Nadu - 600001',
-    permanentAddress: '123 Gandhi Nagar, Chennai, Tamil Nadu - 600001',
-    city: 'Chennai',
-    state: 'Tamil Nadu',
-    pincode: '600001',
-    
-    // School Information
-    dateOfJoining: '2020-06-01',
-    academicYear: '2025-2026',
-    hostelWing: 'North Wing',
-    roomNo: '201',
-    house: 'Unity House',
-    busRoute: 'Route A - Stop 3',
-    
-    // Medical Information
-    medicalHistory: 'No major illness',
-    allergies: 'None',
-    doctorName: 'Dr. Ramesh',
-    doctorContact: '+91 98765 43215',
-    insuranceProvider: 'ABC Insurance',
-    insurancePolicyNo: 'INS2024001',
-    
-    // Academic Information
-    lastYearPercentage: '92%',
-    attendancePercentage: '96%',
-    disciplinaryRecord: 'Good',
-    achievements: '1st in Science Fair 2024',
-    
-    totalLeaves: 4,
-    leavesCompleted: 4,
-    leavesUpcoming: 0,
-    leavesActive: 0
-  },
-  {
-    id: 2,
-    name: 'Priya Sharma',
-    admissionNo: '2024002',
-    class: '9',
-    section: 'B',
-    rollNo: '205',
-    photo: 'https://randomuser.me/api/portraits/girls/44.jpg',
-    dob: '2010-08-22',
-    age: '14',
-    gender: 'Female',
-    bloodGroup: 'A+',
-    religion: 'Hindu',
-    nationality: 'Indian',
-    
-    // Parent Information
-    fatherName: 'Mr. Sharma',
-    fatherOccupation: 'Businessman',
-    fatherContact: '+91 98765 43216',
-    fatherEmail: 'sharma.father@email.com',
-    fatherAadhar: '3456 7890 1234',
-    
-    motherName: 'Mrs. Sharma',
-    motherOccupation: 'Doctor',
-    motherContact: '+91 98765 43211',
-    motherEmail: 'sharma.mother@email.com',
-    motherAadhar: '4567 8901 2345',
-    
-    // Contact Information
-    primaryContact: '+91 98765 43211',
-    secondaryContact: '+91 98765 43216',
-    email: 'priya.student@school.edu.in',
-    emergencyContact: '+91 98765 43217',
-    
-    // Address Information
-    address: '456 Park Street, Mumbai, Maharashtra - 400001',
-    permanentAddress: '456 Park Street, Mumbai, Maharashtra - 400001',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    pincode: '400001',
-    
-    // School Information
-    dateOfJoining: '2021-06-15',
-    academicYear: '2025-2026',
-    hostelWing: 'South Wing',
-    roomNo: '105',
-    house: 'Peace House',
-    busRoute: 'Route B - Stop 5',
-    
-    // Medical Information
-    medicalHistory: 'Asthma',
-    allergies: 'Dust Allergy',
-    doctorName: 'Dr. Mehta',
-    doctorContact: '+91 98765 43218',
-    insuranceProvider: 'XYZ Insurance',
-    insurancePolicyNo: 'INS2024002',
-    
-    // Academic Information
-    lastYearPercentage: '88%',
-    attendancePercentage: '94%',
-    disciplinaryRecord: 'Excellent',
-    achievements: '2nd in State Math Olympiad',
-    
-    totalLeaves: 3,
-    leavesCompleted: 2,
-    leavesUpcoming: 0,
-    leavesActive: 1
-  },
-  {
-    id: 3,
-    name: 'Amit Patel',
-    admissionNo: '2024003',
-    class: '11',
-    section: 'C',
-    rollNo: '312',
-    photo: 'https://randomuser.me/api/portraits/boys/67.jpg',
-    dob: '2008-03-10',
-    age: '16',
-    gender: 'Male',
-    bloodGroup: 'B+',
-    religion: 'Hindu',
-    nationality: 'Indian',
-    
-    // Parent Information
-    fatherName: 'Mr. Patel',
-    fatherOccupation: 'CA',
-    fatherContact: '+91 98765 43212',
-    fatherEmail: 'patel.father@email.com',
-    fatherAadhar: '5678 9012 3456',
-    
-    motherName: 'Mrs. Patel',
-    motherOccupation: 'Homemaker',
-    motherContact: '+91 98765 43219',
-    motherEmail: 'patel.mother@email.com',
-    motherAadhar: '6789 0123 4567',
-    
-    // Contact Information
-    primaryContact: '+91 98765 43212',
-    secondaryContact: '+91 98765 43219',
-    email: 'amit.student@school.edu.in',
-    emergencyContact: '+91 98765 43220',
-    
-    // Address Information
-    address: '789 Nehru Road, Delhi - 110001',
-    permanentAddress: '789 Nehru Road, Delhi - 110001',
-    city: 'Delhi',
-    state: 'Delhi',
-    pincode: '110001',
-    
-    // School Information
-    dateOfJoining: '2019-06-10',
-    academicYear: '2025-2026',
-    hostelWing: 'East Wing',
-    roomNo: '308',
-    house: 'Progress House',
-    busRoute: 'Route C - Stop 2',
-    
-    // Medical Information
-    medicalHistory: 'No major illness',
-    allergies: 'None',
-    doctorName: 'Dr. Verma',
-    doctorContact: '+91 98765 43221',
-    insuranceProvider: 'PQR Insurance',
-    insurancePolicyNo: 'INS2024003',
-    
-    // Academic Information
-    lastYearPercentage: '95%',
-    attendancePercentage: '98%',
-    disciplinaryRecord: 'Very Good',
-    achievements: 'School Cricket Captain',
-    
-    totalLeaves: 3,
-    leavesCompleted: 2,
-    leavesUpcoming: 1,
-    leavesActive: 0
-  },
-];
+// Mock leave history data
+
 
 // Main Component
 const StudentLeaveHistory = () => {
+  const [students, setStudents] = useState([]);
+  const [leaveHistory, setLeaveHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSection, setSelectedSection] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [selectedLeave, setSelectedLeave] = useState(null);
-  const [filteredStudents, setFilteredStudents] = useState(STUDENT_COMPLETE_DATA);
-  const [filteredLeaves, setFilteredLeaves] = useState(LEAVE_HISTORY_DATA);
+  const [filteredStudents, setFilteredStudents] = useState([]);
+  const [filteredLeaves, setFilteredLeaves] = useState([]);
   const [showDetails, setShowDetails] = useState(false);
   const [showLeaveDetails, setShowLeaveDetails] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [dateFilter, setDateFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // Get unique classes and sections
-  const uniqueClasses = [...new Set(STUDENT_COMPLETE_DATA.map(s => s.class))].sort();
-  const uniqueSections = [...new Set(STUDENT_COMPLETE_DATA.map(s => s.section))].sort();
+const uniqueClasses = [...new Set(students.map(s => s.class))].filter(Boolean);
+const uniqueSections = [...new Set(students.map(s => s.section))].filter(Boolean);
 
-  // Filter students
-  useEffect(() => {
-    let filtered = STUDENT_COMPLETE_DATA;
-    
-    if (selectedClass) {
-      filtered = filtered.filter(s => s.class === selectedClass);
-    }
-    
-    if (selectedSection) {
-      filtered = filtered.filter(s => s.section === selectedSection);
-    }
-    
-    if (searchTerm.trim() !== '') {
-      filtered = filtered.filter(student =>
-        student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.rollNo.toString().includes(searchTerm) ||
-        student.admissionNo.includes(searchTerm)
+  
+const totalStudents = students.length;
+
+const totalLeaves = leaveHistory.length;
+
+const activeLeaves = leaveHistory.filter(
+  l => l.status === "active"
+).length;
+
+const upcomingLeaves = leaveHistory.filter(
+  l => l.status === "upcoming"
+).length;
+
+useEffect(() => {
+  const fetchStudents = async () => {
+    const res = await fetch("http://localhost:5000/api/students");
+    const data = await res.json();
+
+    console.log("STUDENTS:", data);
+
+    setStudents(data);
+    setFilteredStudents(data); // initial
+  };
+
+  fetchStudents();
+}, []);
+
+useEffect(() => {
+  if (!students.length) return;
+
+  const fetchLeaves = async () => {
+    const res = await fetch("/api/leave-request", {
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      }
+    });
+    const json = await res.json();
+
+    if (!json.success) return;
+
+    const mapped = json.data.map(l => {
+      const student = students.find(
+        s => String(s.rollNumber) === String(l.studentId)
       );
-    }
-    
-    setFilteredStudents(filtered);
-  }, [selectedClass, selectedSection, searchTerm]);
+
+      return {
+        id: l._id,
+        studentId: l.studentId,
+        studentName: student?.name || l.studentName,
+        rollNo: student?.rollNumber || l.studentId,
+        class: student?.class || "-",
+        section: student?.section || "-",
+        guardianName: student?.fatherName || "Guardian",
+        contact: student?.fatherMobile || "-",
+        purpose: l.leaveReason,
+        departureDate: l.startDate,
+        returnDate: l.endDate,
+        status: l.status,
+        issuedDate: l.createdAt
+      };
+    });
+
+    setLeaveHistory(mapped);
+  };
+
+  fetchLeaves();
+}, [students]);
+useEffect(() => {
+  let data = students;
+
+  if (selectedClass)
+    data = data.filter(s => s.class === selectedClass);
+
+  if (selectedSection)
+    data = data.filter(s => s.section === selectedSection);
+
+  if (searchTerm)
+    data = data.filter(s =>
+      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      String(s.rollNumber).includes(searchTerm)
+    );
+
+  setFilteredStudents(data);
+}, [searchTerm, selectedClass, selectedSection, students]);
+
+useEffect(() => {
+  let data = leaveHistory;
+
+  if (selectedStudent) {
+    data = data.filter(
+      l => String(l.studentId) === String(selectedStudent.rollNumber)
+    );
+  }
+
+  if (statusFilter !== "all") {
+    data = data.filter(l => l.status === statusFilter);
+  }
+
+  setFilteredLeaves(data);
+}, [leaveHistory, selectedStudent, statusFilter]);
 
   // Filter leaves based on selected student and filters
-  useEffect(() => {
-    let filtered = LEAVE_HISTORY_DATA;
-    
-    if (selectedStudent) {
-      filtered = filtered.filter(leave => leave.studentId === selectedStudent.id);
-    }
-    
-    // Apply date filter
-    if (dateFilter !== 'all') {
-      const now = new Date();
-      filtered = filtered.filter(leave => {
-        const leaveDate = new Date(leave.departureDate);
-        switch (dateFilter) {
-          case 'today':
-            return leaveDate.toDateString() === now.toDateString();
-          case 'week':
-            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            return leaveDate >= weekAgo;
-          case 'month':
-            const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-            return leaveDate >= monthAgo;
-          case 'quarter':
-            const quarterAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-            return leaveDate >= quarterAgo;
-          default:
-            return true;
-        }
-      });
-    }
-    
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(leave => leave.status === statusFilter);
-    }
-    
-    // Sort by date (newest first)
-    filtered.sort((a, b) => new Date(b.departureDate) - new Date(a.departureDate));
-    
-    setFilteredLeaves(filtered);
-  }, [selectedStudent, dateFilter, statusFilter]);
 
   // Handle student selection
   const handleSelectStudent = (student) => {
@@ -533,7 +156,10 @@ const StudentLeaveHistory = () => {
   const calculateStats = () => {
     if (!selectedStudent) return null;
     
-    const studentLeaves = LEAVE_HISTORY_DATA.filter(l => l.studentId === selectedStudent.id);
+const studentLeaves = leaveHistory.filter(
+  l => String(l.studentId) === String(selectedStudent.rollNo)
+);
+
     const completedLeaves = studentLeaves.filter(l => l.status === 'completed').length;
     const activeLeaves = studentLeaves.filter(l => l.status === 'active').length;
     const upcomingLeaves = studentLeaves.filter(l => l.status === 'upcoming').length;
@@ -1334,7 +960,7 @@ const StudentLeaveHistory = () => {
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm opacity-90">Total Students</p>
-                <p className="text-3xl font-bold mt-2">{STUDENT_COMPLETE_DATA.length}</p>
+                <p className="text-3xl font-bold mt-2">{totalStudents}</p>
               </div>
               <Users className="w-12 h-12 opacity-80" />
             </div>
@@ -1343,7 +969,7 @@ const StudentLeaveHistory = () => {
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm opacity-90">Total Leaves</p>
-                <p className="text-3xl font-bold mt-2">{LEAVE_HISTORY_DATA.length}</p>
+                <p className="text-3xl font-bold mt-2">{leaveHistory.length}</p>
               </div>
               <History className="w-12 h-12 opacity-80" />
             </div>
@@ -1353,7 +979,7 @@ const StudentLeaveHistory = () => {
               <div>
                 <p className="text-sm opacity-90">Active Leaves</p>
                 <p className="text-3xl font-bold mt-2">
-                  {LEAVE_HISTORY_DATA.filter(l => l.status === 'active').length}
+                  {leaveHistory.filter(l => l.status === 'active').length}
                 </p>
               </div>
               <TrendingUp className="w-12 h-12 opacity-80" />
@@ -1364,7 +990,7 @@ const StudentLeaveHistory = () => {
               <div>
                 <p className="text-sm opacity-90">Upcoming Leaves</p>
                 <p className="text-3xl font-bold mt-2">
-                  {LEAVE_HISTORY_DATA.filter(l => l.status === 'upcoming').length}
+                  {leaveHistory.filter(l => l.status === 'upcoming').length}
                 </p>
               </div>
               <Calendar className="w-12 h-12 opacity-80" />
@@ -1404,7 +1030,10 @@ const StudentLeaveHistory = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredStudents.map((student) => {
-                  const studentLeaves = LEAVE_HISTORY_DATA.filter(l => l.studentId === student.id);
+                 const studentLeaves = leaveHistory.filter(
+  l => String(l.studentId) === String(student.rollNo)
+);
+
                   const completedLeaves = studentLeaves.filter(l => l.status === 'completed').length;
                   const activeLeaves = studentLeaves.filter(l => l.status === 'active').length;
                   const upcomingLeaves = studentLeaves.filter(l => l.status === 'upcoming').length;
@@ -1482,7 +1111,7 @@ const StudentLeaveHistory = () => {
         <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Recent Leave Activity</h2>
           <div className="space-y-4">
-            {LEAVE_HISTORY_DATA.slice(0, 5).map((leave) => (
+            {leaveHistory.slice(0, 5).map((leave) => (
               <div
                 key={leave.id}
                 className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"

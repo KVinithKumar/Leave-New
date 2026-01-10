@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
-import Principal from "./models/Principal.js";
+import Principal from "./models/principal.js";
 
-dotenv.config({ path: "./backend/.env" });
+dotenv.config({ path: "./.env" });
 
 mongoose
   .connect(process.env.MONGO_URI)

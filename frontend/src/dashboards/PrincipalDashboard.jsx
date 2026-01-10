@@ -10,68 +10,81 @@ const PrincipalDashboard = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchType, setSearchType] = useState('student');
   const [newsIndex, setNewsIndex] = useState(0);
   const [teachers, setTeachers] = useState([]);
   const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [attendanceSummary, setAttendanceSummary] = useState({
-  total: 0,
-  present: 0,
-  absent: 0,
-  sick: 0,
-  leave: 0,
-  percentage: 0
-});
+    total: 0,
+    present: 0,
+    absent: 0,
+    sick: 0,
+    leave: 0,
+    percentage: 0
+  });
+  
+  // Real data state
+  const [schedule, setSchedule] = useState([]);
+  const [recentLogs, setRecentLogs] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
 
-  // Sample schedule data with live time status
-  const scheduleData = [
-    {
-      id: 1,
-      startTime: "09:00",
-      endTime: "10:00",
-      className: "Class 8A",
-      subject: "Mathematics",
-      room: "Room 101"
-    },
-    {
-      id: 2,
-      startTime: "10:00",
-      endTime: "11:00",
-      className: "Class 9B",
-      subject: "Mathematics",
-      room: "Room 102"
-    },
-    {
-      id: 3,
-      startTime: "11:30",
-      endTime: "12:30",
-      className: "Class 10A",
-      subject: "Mathematics",
-      room: "Room 103"
-    },
-    {
-      id: 4,
-      startTime: "14:00",
-      endTime: "15:00",
-      className: "Class 7C",
-      subject: "Mathematics",
-      room: "Room 104"
-    },
-    {
-      id: 5,
-      startTime: "15:30",
-      endTime: "16:30",
-      className: "Class 11B",
-      subject: "Physics",
-      room: "Lab 1"
+  // Fetch functions
+  const fetchSchedule = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5002/api/timetable/today", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSchedule(data.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch schedule", err);
     }
-  ];
-
-  // Sample data for dashboard
-  const dashboardData = {
-    presentToday: 1150,
-    absentToday: 40
   };
+
+  const fetchLogs = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5002/api/admin/logs?limit=5", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.logs) {
+        setRecentLogs(data.logs);
+      }
+    } catch (err) {
+      console.error("Failed to fetch logs", err);
+    }
+  };
+
+  const fetchAnnouncements = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5002/api/announcements", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        // Show All announcements to Principal
+        const relevant = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setAnnouncements(relevant);
+      }
+    } catch (err) {
+      console.error("Failed to fetch announcements", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchSchedule();
+    fetchLogs();
+    fetchAnnouncements();
+    fetchStudents();
+    fetchTodayAttendance();
+    fetchTeachers();
+  }, []);
 
   // Update time every second
   useEffect(() => {
@@ -81,9 +94,25 @@ const PrincipalDashboard = () => {
 
     return () => clearInterval(timer);
   }, []);
+
+  // Check authentication
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
+    if (!token || (role !== "Principal" && role !== "Admin")) {
+      navigate("/select-role");
+      return;
+    }
+  }, [navigate]);
 const fetchStudents = async () => {
   try {
-    const res = await fetch("/api/students");
+    const token = localStorage.getItem("token");
+    const res = await fetch("http://localhost:5002/api/students", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
     const data = await res.json();
     setStudents(data);
   } catch (err) {
@@ -97,8 +126,13 @@ useEffect(() => {
 const fetchTodayAttendance = async () => {
   try {
     const today = new Date().toISOString().split("T")[0];
+    const token = localStorage.getItem("token");
 
-    const res = await fetch(`/api/attendance/summary?date=${today}`);
+    const res = await fetch(`http://localhost:5002/api/attendance/summary?date=${today}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
     const data = await res.json();
 
     setAttendanceSummary(data);
@@ -167,7 +201,12 @@ const studentStats = {
 
 const fetchTeachers = async () => {
   try {
-    const res = await fetch("/api/staff");
+    const token = localStorage.getItem("token");
+    const res = await fetch("http://localhost:5002/api/staff", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
     const data = await res.json();
     setTeachers(data);
   } catch (err) {
@@ -255,16 +294,24 @@ const teacherStats = {
               <div className="w-full md:w-auto">
                 <form onSubmit={handleSearch} className="relative">
                   <div className="flex items-center">
+                    <select
+                      value={searchType}
+                      onChange={(e) => setSearchType(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 text-gray-700 border-r-0 h-[42px]"
+                    >
+                      <option value="student">Students</option>
+                      <option value="teacher">Teachers</option>
+                    </select>
                     <input
                       type="text"
-                      placeholder="Search students, teachers, or ID..."
-                      className="px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full md:w-64"
+                      placeholder={searchType === 'student' ? "Search students..." : "Search teachers..."}
+                      className="px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full md:w-64 h-[42px]"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                     <button
                       type="submit"
-                      className="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      className="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 h-[42px]"
                       title="Search"
                     >
                       <FaSearch className="w-5 h-5" />
@@ -288,8 +335,9 @@ const teacherStats = {
                   <span className="mr-2">📢</span> Flash News - {formatShortDate(currentTime)}
                 </h2>
                 <marquee className="text-sm text-yellow-700 mt-1">
-                  Mid-term exams start from 20th Sept | Parent-teacher meeting on Friday | School annual day on 25th December | 
-                  Sports day competitions begin next week | Science exhibition entries open | Library week starting from 15th Oct |
+                  {announcements.length > 0 
+                    ? announcements.map(a => `${a.title}: ${a.message} | `).join('') 
+                    : "No new announcements for today | "}
                   Live time: {formatTime(currentTime)} | Today is {getDayOfWeek(currentTime)}
                 </marquee>
               </div>
@@ -350,9 +398,9 @@ const teacherStats = {
               <div className="bg-white p-5 rounded shadow border-l-4 border-yellow-500 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer">
                 <div className="flex justify-between items-start">
                   <p className="text-sm text-gray-500">Classes Today</p>
-                  <span className="text-xs text-gray-400">{scheduleData.length} sessions</span>
+                  <span className="text-xs text-gray-400">{schedule.length} sessions</span>
                 </div>
-                <h3 className="text-2xl font-bold mt-1">{scheduleData.length}</h3>
+                <h3 className="text-2xl font-bold mt-1">{schedule.length}</h3>
                 <div className="mt-2 text-xs text-gray-400">
                   Scheduled for today
                 </div>
@@ -556,9 +604,12 @@ const teacherStats = {
                   {formatDate(currentTime)}
                 </div>
               </div>
-              <ul className="space-y-3">
-                {scheduleData.map((classItem) => {
-                  const status = getClassStatus(classItem.startTime, classItem.endTime);
+              <ul className="space-y-3 max-h-96 overflow-y-auto">
+                {schedule.length > 0 ? (
+                  schedule.map((classItem) => {
+                  const startTime = classItem.period.startTime;
+                  const endTime = classItem.period.endTime;
+                  const status = getClassStatus(startTime, endTime);
                   const statusColors = {
                     upcoming: 'bg-gray-100 text-gray-800',
                     startingsoon: 'bg-orange-100 text-orange-800',
@@ -569,13 +620,13 @@ const teacherStats = {
                   
                   return (
                     <li 
-                      key={classItem.id} 
+                      key={classItem._id} 
                       className="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors duration-200 cursor-pointer group"
                     >
                       <div>
                         <div className="flex items-center space-x-2">
                           <span className="font-medium group-hover:text-gray-700 transition-colors">
-                            {classItem.startTime} – {classItem.endTime}
+                            {startTime} – {endTime}
                           </span>
                           {status.status === 'ongoing' && (
                             <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full animate-pulse">
@@ -584,16 +635,19 @@ const teacherStats = {
                           )}
                         </div>
                         <p className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
-                          {classItem.className} ({classItem.subject})
+                          Class {classItem.className}{classItem.section} ({classItem.subject})
                         </p>
-                        <p className="text-xs text-gray-500">{classItem.room}</p>
+                        <p className="text-xs text-gray-500">{classItem.room} • {classItem.teacher}</p>
                       </div>
                       <span className={`px-3 py-1 text-xs rounded-full transition-colors ${statusColors[status.status]}`}>
                         {status.label}
                       </span>
                     </li>
                   );
-                })}
+                })
+                ) : (
+                  <p className="text-center text-gray-500 py-4">No classes scheduled for today.</p>
+                )}
               </ul>
               
               {/* LIVE TIME INDICATOR */}
@@ -619,44 +673,28 @@ const teacherStats = {
                 </div>
               </div>
               <ul className="space-y-3">
-                <li className="flex items-start gap-3 p-3 bg-green-50 rounded hover:bg-green-100 transition-colors duration-200 cursor-pointer group">
-                  <div className="text-green-600 mt-1 group-hover:scale-110 transition-transform">✓</div>
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium group-hover:text-green-800 transition-colors">Attendance Marked</p>
-                      <span className="text-xs text-gray-500">{formatTime(new Date(currentTime.getTime() - 10 * 60000))}</span>
-                    </div>
-                    <p className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
-                      Class 9B - {dashboardData.presentToday} present, {dashboardData.absentToday} absent
-                    </p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3 p-3 bg-blue-50 rounded hover:bg-blue-100 transition-colors duration-200 cursor-pointer group">
-                  <div className="text-blue-600 mt-1 group-hover:scale-110 transition-transform">📝</div>
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium group-hover:text-blue-800 transition-colors">Results Updated</p>
-                      <span className="text-xs text-gray-500">{formatTime(new Date(currentTime.getTime() - 120 * 60000))}</span>
-                    </div>
-                    <p className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
-                      Class 10 Mathematics exam results uploaded
-                    </p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3 p-3 bg-purple-50 rounded hover:bg-purple-100 transition-colors duration-200 cursor-pointer group">
-                  <div className="text-purple-600 mt-1 group-hover:scale-110 transition-transform">👨‍🏫</div>
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium group-hover:text-purple-800 transition-colors">Class Assigned</p>
-                      <span className="text-xs text-gray-500">
-                        Yesterday, {formatTime(new Date(currentTime.getTime() - 24 * 60 * 60000))}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors">
-                      New class 8C assigned for Mathematics
-                    </p>
-                  </div>
-                </li>
+                {recentLogs.length > 0 ? (
+                  recentLogs.map((log) => (
+                    <li key={log._id} className="flex items-start gap-3 p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors duration-200 cursor-pointer group">
+                      <div className="text-blue-600 mt-1 group-hover:scale-110 transition-transform">
+                        {log.action.includes('DELETE') ? '🗑️' : log.action.includes('UPDATE') ? '📝' : '✅'}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="font-medium group-hover:text-blue-800 transition-colors">
+                            {log.action.replace(/_/g, ' ')}
+                          </p>
+                          <span className="text-xs text-gray-500">{formatTime(new Date(log.createdAt))}</span>
+                        </div>
+                        <p className="text-sm text-gray-600 group-hover:text-gray-800 transition-colors truncate">
+                          By {log.role} ({log.email})
+                        </p>
+                      </div>
+                    </li>
+                  ))
+                ) : (
+                  <p className="text-center text-gray-500 py-4">No recent activity.</p>
+                )}
               </ul>
               
               {/* TIME TRACKER */}

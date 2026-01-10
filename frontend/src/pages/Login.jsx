@@ -1,14 +1,51 @@
 import { useNavigate } from "react-router-dom";
 import { FaUser, FaLock, FaSignInAlt, FaQuestionCircle } from "react-icons/fa";
+import { useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 export default function StaffLogin() {
   const navigate = useNavigate();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Authentication logic will be added later
-    navigate("/staff/dashboard");
+    setError("");
+    setLoading(true);
+
+    // Properly extract form values using name attributes
+    const email = e.target.email?.value || e.target[0].value;
+    const password = e.target.password?.value || e.target[1].value;
+
+    if (!email || !password) {
+      setError("Email and password are required");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5002/api/auth/login/staff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("role", "Staff");
+        localStorage.setItem("user", JSON.stringify(data.user));
+        navigate("/staff/dashboard");
+      } else {
+        setError(data.message || "Login failed");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Server error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleForgotPassword = () => {
@@ -35,9 +72,16 @@ export default function StaffLogin() {
 
             {/* Form */}
             <form onSubmit={handleLogin} className="px-8 py-8 space-y-6">
+              {/* Error Display */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
               {/* Email Field */}
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   Email Address
                 </label>
                 <div className="relative">
@@ -45,6 +89,8 @@ export default function StaffLogin() {
                     <FaUser className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
+                    id="email"
+                    name="email"
                     type="email"
                     required
                     placeholder="staff@school.edu"
@@ -55,7 +101,7 @@ export default function StaffLogin() {
 
               {/* Password Field */}
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Password
                 </label>
                 <div className="relative">
@@ -63,6 +109,8 @@ export default function StaffLogin() {
                     <FaLock className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
+                    id="password"
+                    name="password"
                     type="password"
                     required
                     placeholder="Enter your password"
@@ -97,10 +145,11 @@ export default function StaffLogin() {
               {/* Login Button */}
               <button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-3"
+                disabled={loading}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-3"
               >
                 <FaSignInAlt className="h-5 w-5" />
-                Sign In to Dashboard
+                {loading ? "Signing In..." : "Sign In to Dashboard"}
               </button>
 
               {/* Back Link */}
